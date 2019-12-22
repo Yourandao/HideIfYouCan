@@ -20,7 +20,9 @@ public class PlayerInteracting : MonoBehaviour
 		if (Physics.Raycast(transform.position, transform.forward, out RaycastHit hit, _viewRange))
 		{
 			var hitObject = hit.transform.GetComponent<Mimic>();
+
 			Debug.Log(hitObject?.Name ?? "null");
+
 			if (hitObject != null)
 			{
 				_renderer.mesh = hitObject.Sprite;
