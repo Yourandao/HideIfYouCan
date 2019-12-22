@@ -1,4 +1,6 @@
-﻿using Mirror;
+﻿using Assets.Scripts.Managing.Game;
+
+using Mirror;
 
 using UnityEngine;
 
@@ -28,11 +30,16 @@ namespace Assets.Scripts.PlayerScripts
             base.OnStartClient();
 
             playerName = GetComponent<NetworkIdentity>().netId.ToString();
-        }
 
-        public void OnDisable() { }
+            GameManager.Players.Add(playerName, player);
+        }
 
         [Command]
         private void CmdSetName(string name) => gameObject.name = name;
+
+        public void OnDisable()
+        {
+            GameManager.Players.Remove(playerName);
+        }
     }
 }

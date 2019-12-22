@@ -1,4 +1,6 @@
-﻿using Assets.Scripts.PlayerScripts;
+﻿using System.Collections.Generic;
+
+using Assets.Scripts.PlayerScripts;
 using Assets.Scripts.PlayerScripts.PlayerRoles;
 
 using Mirror;
@@ -12,6 +14,8 @@ namespace Assets.Scripts.Managing.Game
         public static GameManager Singleton { get; private set; }
 
         public GameSettings gameSettings;
+
+        public static Dictionary<string, Player> Players { get; } = new Dictionary<string, Player>();
 
         private static int _hidersCount;
         private static int _seekersCount;
