@@ -8,7 +8,7 @@ namespace Assets.Scripts
         {
             foreach (var component in components)
             {
-                component.enabled = false;
+                component.enabled = state;
             }
         }
 
