@@ -6,13 +6,13 @@ public class PlayerMovement : MonoBehaviour
 
 	private Vector3 _move = Vector3.zero;
 
-	[SerializeField] [Range(.0f, 20.0f)] private float _speed;
+	[SerializeField] private float _speed;
 
-	[SerializeField] [Range(.0f, 20.0f)] private float _jumpSpeed = 8.0f;
+	[SerializeField] private float _jumpSpeed = 8.0f;
 	
-	[SerializeField] [Range(.0f, 50.0f)] private float _gravity = 20.0f;
+	[SerializeField] private float _gravity = 20.0f;
 
-	[SerializeField] [Range(1.0f, 5.0f)] private float _acceleration = 1.0f;
+	[SerializeField] private float _acceleration = 1.0f;
 
 	private void Start()
 	{
@@ -23,8 +23,8 @@ public class PlayerMovement : MonoBehaviour
 	{
 		if (_controller.isGrounded)
 		{ 
-			_move = (transform.right * Input.GetAxis("Horizontal") 
-								+ transform.forward * Input.GetAxis("Vertical")) * _speed;
+			_move = (transform.right * Input.GetAxisRaw("Horizontal") 
+								+ transform.forward * Input.GetAxisRaw("Vertical")) * _speed;
 
 			if (Input.GetKey(KeyCode.LeftShift))
 			{
@@ -39,7 +39,10 @@ public class PlayerMovement : MonoBehaviour
 		}
 
 		_move.y -= _gravity * Time.deltaTime;
+	}
 
-		_controller.Move(_move * Time.deltaTime);
+	private void FixedUpdate()
+	{
+		_controller.Move(_move * Time.fixedDeltaTime);
 	}
 }
