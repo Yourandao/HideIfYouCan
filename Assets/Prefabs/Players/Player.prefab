@@ -107,7 +107,6 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.1
   player: {fileID: 1664009907526994776}
-  UIPrefab: {fileID: 0}
   componentsToEnable:
   - {fileID: 7722692716146964897}
   - {fileID: 8876516243541072150}
@@ -295,6 +294,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1453386054518026955}
   - component: {fileID: 3503157810776008972}
+  - component: {fileID: 746349001585085119}
   m_Layer: 8
   m_Name: ViewModelCamera
   m_TagString: Untagged
@@ -359,6 +359,20 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
+--- !u!114 &746349001585085119
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5691668079095811982}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c073c2e787e800b458971a5337b3fb0d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _viewRange: 100
+  _renderer: {fileID: 2701663404549563736}
 --- !u!1 &8652664296636143600
 GameObject:
   m_ObjectHideFlags: 0
