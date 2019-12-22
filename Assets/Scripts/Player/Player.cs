@@ -1,9 +1,6 @@
-﻿using Assets.Scripts.Managing.Game;
-using Assets.Scripts.PlayerScripts.PlayerRoles;
+﻿using Assets.Scripts.PlayerScripts.PlayerRoles;
 
 using Mirror;
-
-using UnityEngine;
 
 namespace Assets.Scripts.PlayerScripts
 {
@@ -11,27 +8,23 @@ namespace Assets.Scripts.PlayerScripts
     {
         public PlayerRole playerRole = new PlayerRole();
 
-        [SerializeField] private Behaviour[] playerTools;
-
         public void Setup()
         {
             CmdSetup();
         }
 
         [Command]
-        private void CmdSetup() =>  RpcSetup();
+        private void CmdSetup() => RpcSetup();
 
         [ClientRpc]
         private void RpcSetup() => SetDefaults();
 
         private void SetDefaults()
         {
-            Utility.ToggleComponents(ref playerTools, false);
-
-            GameManager.OnGameStart += OnGameStart;
+            Utility.ToggleComponents(ref playerRole.defaultRoleSet, false);
         }
 
-        private void OnGameStart()
+        private void OnGameStartCallback()
         {
             var roleSet = playerRole.GetRoleSet();
 

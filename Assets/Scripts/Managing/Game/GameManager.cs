@@ -1,23 +1,22 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using Assets.Scripts.PlayerScripts;
+using Assets.Scripts.PlayerScripts.PlayerRoles;
+
+using Mirror;
 
 using UnityEngine;
 
-using Assets.Scripts.PlayerScripts;
-using Assets.Scripts.PlayerScripts.PlayerRoles;
-
 namespace Assets.Scripts.Managing.Game
 {
-    public class GameManager : MonoBehaviour
+    public class GameManager : NetworkManager
     {
         public static GameManager Singleton { get; private set; }
 
         public GameSettings gameSettings;
 
-        public delegate void GameStartHandler();
-        public static event GameStartHandler OnGameStart;
+        private static int _hidersCount;
+        private static int _seekersCount;
 
-        private void Start()
+        public override void Start()
         {
             if (Singleton != null)
                 throw new MultiInstanceException(gameObject);
@@ -25,48 +24,49 @@ namespace Assets.Scripts.Managing.Game
             Singleton = this;
         }
 
-        public void StartGame()
+        public override void OnStartServer()
         {
-            var allPlayers = new List<Player>(Players.Values);
+            base.OnStartServer();
 
-            var hiders  = new List<Player>();
-            var seekers = new List<Player>();
+            NetworkServer.RegisterHandler<SpawnMessage>(OnRoleAssigned);
+        }
 
-            while (hiders.Count + seekers.Count < allPlayers.Count)
+        public override void OnClientConnect(NetworkConnection connection)
+        {
+            base.OnClientConnect(connection);
+
+            var spawnMessage = new SpawnMessage();
+
+            if ((float) _seekersCount / (_hidersCount + 1) < gameSettings.seekersToHidersRelation)
             {
-                if ((float) seekers.Count / (hiders.Count + 1) < gameSettings.seekersToHidersRelation)
+                if (Random.value >= .5f)
                 {
-                    var randomPlayer = allPlayers.ElementAt(Random.Range(0, allPlayers.Count));
-
-                    randomPlayer.playerRole.role = Roles.Seeker;
-
-                    seekers.Add(randomPlayer);
-                    allPlayers.Remove(randomPlayer);
+                    spawnMessage.role = Roles.Hider;
+                    _hidersCount++;
                 }
                 else
                 {
-                    hiders.AddRange(allPlayers);
+                    spawnMessage.role = Roles.Seeker;
+                    _seekersCount++;
                 }
             }
+            else
+            {
+                spawnMessage.role = Roles.Hider;
+                _hidersCount++;
+            }
 
-            OnGameStart?.Invoke();
+            connection.Send(spawnMessage);
         }
 
-        #region Player management
-
-        private static Dictionary<string, Player> Players { get; } = new Dictionary<string, Player>();
-
-        public static void RegisterPlayer(string name, Player player)
+        private void OnRoleAssigned(NetworkConnection connection, SpawnMessage message)
         {
-            player.gameObject.name = name;
-            player.playerRole.role = Roles.Unassigned;
+            var instance = Instantiate(playerPrefab);
 
-            Players.Add(name, player);
+            var player = instance.GetComponent<Player>();
+            player.playerRole.role = message.role;
+
+            NetworkServer.AddPlayerForConnection(connection, instance);
         }
-
-        public static void UnregisterPlayer(string name) =>
-            Players.Remove(name);
-
-        #endregion
     }
 }
