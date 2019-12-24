@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Dick
   m_EditorClassIdentifier: 
   Name: Dick
-  PlayerSpeedMultiplier: 12313
-  JumpSpeedMultiplier: 12313
-  Sprite: {fileID: 4300002, guid: 16fb769c0394c36469ed40a4f35c1eec, type: 3}
+  PlayerSpeedMultiplier: 2
+  JumpSpeedMultiplier: 2
+  Sprite: {fileID: 100000, guid: 4e11ef4f39bc65e44a4b0755ecac6ea1, type: 3}

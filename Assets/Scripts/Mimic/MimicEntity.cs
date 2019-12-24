@@ -9,5 +9,5 @@ public class MimicEntity : ScriptableObject
 
 	public float JumpSpeedMultiplier;
 
-	public Mesh Sprite;
+	public GameObject Sprite;
 }

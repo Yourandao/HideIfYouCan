@@ -10,7 +10,7 @@ public class Mimic : MonoBehaviour
 
 	public float JumpReduce { get; private set; }
 
-	public Mesh Sprite { get; private set; }
+	public GameObject Sprite { get; private set; }
 
 	void Start()
 	{

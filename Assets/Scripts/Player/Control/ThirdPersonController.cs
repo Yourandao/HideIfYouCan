@@ -2,10 +2,10 @@
 
 namespace Assets.Scripts.PlayerScripts.Control
 {
-    [RequireComponent(typeof(CharacterController))]
+    [RequireComponent(typeof(UnityEngine.CharacterController))]
     public class ThirdPersonController : MonoBehaviour
     {
-        [SerializeField] private CharacterController controller = default;
+        [SerializeField] private UnityEngine.CharacterController controller = default;
 
         [SerializeField] private float movementSpeed = 2.5f;
         [SerializeField] private float jumpSpeed     = 2.5f;
