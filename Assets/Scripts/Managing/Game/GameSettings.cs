@@ -3,7 +3,7 @@
 namespace Assets.Scripts.Managing.Game
 {
     [System.Serializable]
-    public class GameSettings
+    public sealed class GameSettings
     {
         [Header("Time Settings")]
         public float roundTime;
@@ -11,6 +11,6 @@ namespace Assets.Scripts.Managing.Game
         public float timeToHide;
 
         [Header("Roles Settings")]
-        [Range(0f, 1f)] public float seekersToHidersRelation;
+        [Range(.1f, 1f)] public float seekersToHidersRelation;
     }
 }

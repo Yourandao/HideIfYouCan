@@ -7,39 +7,43 @@ using UnityEngine;
 namespace Assets.Scripts.PlayerScripts
 {
     [RequireComponent(typeof(Player))]
-    public class Setup : NetworkBehaviour
+    public sealed class Setup : NetworkBehaviour
     {
         [SerializeField] private Player player = default;
-        private                  string playerName;
 
+        [Header("Components Management")]
         [SerializeField] private Behaviour[] componentsToEnable;
+
+        [SerializeField] private CharacterController controller;
 
         public override void OnStartLocalPlayer()
         {
             base.OnStartLocalPlayer();
 
             Utility.ToggleComponents(ref componentsToEnable, true);
+            controller.enabled = true;
+    
             GetComponent<CharacterController>().enabled = true;
 
             player.Setup();
-            CmdSetName(playerName);
+            CmdSetName(name);
         }
 
         public override void OnStartClient()
         {
             base.OnStartClient();
 
-            playerName = GetComponent<NetworkIdentity>().netId.ToString();
+            name = GetComponent<NetworkIdentity>().netId.ToString();
 
-            GameManager.Players.Add(playerName, player);
+            GameManager.Players.Add(name, player);
         }
 
         [Command]
-        private void CmdSetName(string name) => gameObject.name = name;
+        private void CmdSetName(string newName) => name = newName;
 
         public void OnDisable()
         {
-            GameManager.Players.Remove(playerName);
+            GameManager.UnregisterPlayer(name, player.playerRole.role);
         }
     }
 }
