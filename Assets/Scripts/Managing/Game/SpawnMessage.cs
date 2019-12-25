@@ -1,4 +1,4 @@
-﻿using Assets.Scripts.PlayerScripts.PlayerRoles;
+﻿using Assets.Scripts.PlayerScripts;
 
 using Mirror;
 
@@ -6,6 +6,6 @@ namespace Assets.Scripts.Managing.Game
 {
     public class SpawnMessage : MessageBase
     {
-        public Roles role;
+        public Role role;
     }
 }
