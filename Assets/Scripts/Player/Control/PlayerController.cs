@@ -1,5 +1,4 @@
 ﻿using Assets.Scripts.Exceptions;
-using Assets.Scripts.PlayerScripts.PlayerRoles;
 
 using UnityEngine;
 
@@ -37,8 +36,6 @@ namespace Assets.Scripts.PlayerScripts.Control
             if (Cursor.lockState != CursorLockMode.Locked)
                 Cursor.lockState = CursorLockMode.Locked;
 
-            _mouseLook.Rotate(transform, _camera.transform);
-
             if (_controller.isGrounded)
             {
                 _move = (transform.right * Input.GetAxisRaw("Horizontal")
@@ -65,7 +62,7 @@ namespace Assets.Scripts.PlayerScripts.Control
             _controller.Move(_move * Time.fixedDeltaTime);
         }
 
-        public void ChangeCameraMode(Roles role)
+        public void ChangeCameraMode(Role role)
         {
             Destroy(thirdPersonCameraInstance);
 
@@ -74,7 +71,7 @@ namespace Assets.Scripts.PlayerScripts.Control
 
             switch (role)
             {
-                case Roles.Hider:
+                case Role.Hider:
                     thirdPersonCameraInstance      = Instantiate(thirdPersonCameraPrefab);
                     thirdPersonCameraInstance.name = thirdPersonCameraPrefab.name;
 
@@ -82,7 +79,7 @@ namespace Assets.Scripts.PlayerScripts.Control
 
                     break;
 
-                case Roles.Seeker:
+                case Role.Seeker:
                     firstPersonCamera.SetActive(true);
 
                     break;
@@ -90,7 +87,7 @@ namespace Assets.Scripts.PlayerScripts.Control
                 default: throw new UnhandledRoleException(role);
             }
 
-            var currentCamera = role == Roles.Seeker ? firstPersonCamera : thirdPersonCameraInstance;
+            var currentCamera = role == Role.Seeker ? firstPersonCamera : thirdPersonCameraInstance;
             _camera = currentCamera.GetComponent<Camera>();
 
             _mouseLook.Setup(transform, _camera.transform);
