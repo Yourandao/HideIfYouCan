@@ -1,5 +1,4 @@
-﻿using Assets.Scripts.Exceptions;
-using Assets.Scripts.PlayerScripts.Control;
+﻿using Assets.Scripts.PlayerScripts.Control;
 using Assets.Scripts.PlayerScripts.PlayerRoles;
 
 using Mirror;
@@ -10,7 +9,7 @@ namespace Assets.Scripts.PlayerScripts
 {
     public sealed class Player : NetworkBehaviour
     {
-	    [SerializeField] private PlayerController _controller;
+        [SerializeField] private PlayerController controller = default;
 
         public PlayerRole playerRole = new PlayerRole();
 
@@ -29,7 +28,7 @@ namespace Assets.Scripts.PlayerScripts
         {
             if (isLocalPlayer)
             {
-				_controller.ChangeMode(playerRole.role);
+                controller.ChangeCameraMode(playerRole.role);
             }
 
             var roleSet = playerRole.GetRoleSet();
