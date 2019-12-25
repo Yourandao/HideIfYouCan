@@ -1,5 +1,4 @@
 ﻿using Assets.Scripts.PlayerScripts.Control;
-using Assets.Scripts.PlayerScripts.PlayerRoles;
 
 using Mirror;
 
@@ -11,7 +10,8 @@ namespace Assets.Scripts.PlayerScripts
     {
         [SerializeField] private PlayerController controller = default;
 
-        public PlayerRole playerRole = new PlayerRole();
+        [HideInInspector]
+        [SyncVar] public Role role;
 
         public void Setup()
         {
@@ -28,13 +28,8 @@ namespace Assets.Scripts.PlayerScripts
         {
             if (isLocalPlayer)
             {
-                controller.ChangeCameraMode(playerRole.role);
+                controller.ChangeCameraMode(role);
             }
-
-            var roleSet = playerRole.GetRoleSet();
-            Utility.ToggleComponents(ref roleSet, true);
-
-            Utility.ToggleComponents(ref playerRole.defaultRoleSet, false);
         }
     }
 }

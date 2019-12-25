@@ -1,6 +1,6 @@
-﻿namespace Assets.Scripts.PlayerScripts.PlayerRoles
+﻿namespace Assets.Scripts.PlayerScripts
 {
-    public enum Roles
+    public enum Role
     {
         Unassigned,
         Hider,

@@ -22,8 +22,6 @@ namespace Assets.Scripts.PlayerScripts
 
             Utility.ToggleComponents(ref componentsToEnable, true);
             controller.enabled = true;
-    
-            GetComponent<CharacterController>().enabled = true;
 
             player.Setup();
             CmdSetName(name);
@@ -35,7 +33,7 @@ namespace Assets.Scripts.PlayerScripts
 
             name = GetComponent<NetworkIdentity>().netId.ToString();
 
-            GameManager.Players.Add(name, player);
+            GameManager.RegisterPlayer(name, player);
         }
 
         [Command]
@@ -43,7 +41,7 @@ namespace Assets.Scripts.PlayerScripts
 
         public void OnDisable()
         {
-            GameManager.UnregisterPlayer(name, player.playerRole.role);
+            GameManager.UnregisterPlayer(name, player.role);
         }
     }
 }

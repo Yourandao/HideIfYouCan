@@ -2,11 +2,10 @@
 
 using Assets.Scripts.Exceptions;
 using Assets.Scripts.PlayerScripts;
-using Assets.Scripts.PlayerScripts.PlayerRoles;
 
 using Mirror;
 
-using Random = UnityEngine.Random;
+using UnityEngine;
 
 namespace Assets.Scripts.Managing.Game
 {
@@ -16,7 +15,7 @@ namespace Assets.Scripts.Managing.Game
 
         public GameSettings gameSettings = new GameSettings();
 
-        public static Dictionary<string, Player> Players { get; } = new Dictionary<string, Player>();
+        private static Dictionary<string, Player> _players = new Dictionary<string, Player>();
 
         private static int _hidersCount;
         private static int _seekersCount;
@@ -35,7 +34,7 @@ namespace Assets.Scripts.Managing.Game
 
             NetworkServer.RegisterHandler<SpawnMessage>(OnRoleAssigned);
 
-            Players.Clear();
+            _players.Clear();
 
             _hidersCount  = 0;
             _seekersCount = 0;
@@ -49,20 +48,20 @@ namespace Assets.Scripts.Managing.Game
 
             if ((float) _seekersCount / (_hidersCount + 1) < gameSettings.seekersToHidersRelation)
             {
-                //if (Random.value >= .5f)
-                //{
-                    spawnMessage.role = Roles.Hider;
+                if (Random.value >= .5f)
+                {
+                    spawnMessage.role = Role.Hider;
                     _hidersCount++;
-                //}
-                //else
-                //{
-                //    spawnMessage.role = Roles.Seeker;
-                //    _seekersCount++;
-                //}
+                }
+                else
+                {
+                    spawnMessage.role = Role.Seeker;
+                    _seekersCount++;
+                }
             }
             else
             {
-                spawnMessage.role = Roles.Hider;
+                spawnMessage.role = Role.Hider;
                 _hidersCount++;
             }
 
@@ -74,22 +73,27 @@ namespace Assets.Scripts.Managing.Game
             var instance = Instantiate(playerPrefab);
 
             var player = instance.GetComponent<Player>();
-            player.playerRole.role = message.role;
+            player.role = message.role;
 
             NetworkServer.AddPlayerForConnection(connection, instance);
         }
 
-        public static void UnregisterPlayer(string playerName, Roles role)
+        public static void RegisterPlayer(string name, Player player)
         {
-            Players.Remove(playerName);
+            _players.Add(name, player);
+        }
+
+        public static void UnregisterPlayer(string playerName, Role role)
+        {
+            _players.Remove(playerName);
 
             switch (role)
             {
-                case Roles.Hider:
+                case Role.Hider:
                     _hidersCount--;
 
                     break;
-                case Roles.Seeker:
+                case Role.Seeker:
                     _seekersCount--;
 
                     break;
