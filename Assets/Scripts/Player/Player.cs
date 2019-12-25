@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts.Exceptions;
+using Assets.Scripts.PlayerScripts.Control;
 using Assets.Scripts.PlayerScripts.PlayerRoles;
 
 using Mirror;
@@ -9,13 +10,7 @@ namespace Assets.Scripts.PlayerScripts
 {
     public sealed class Player : NetworkBehaviour
     {
-        [Header("Cameras")]
-        [SerializeField] private GameObject firstPersonCamera = default;
-
-        [SerializeField] private GameObject thirdPersonCameraController = default;
-
-        [SerializeField] private GameObject thirdPersonCameraPrefab = default;
-        private                  GameObject thirdPersonCameraInstance;
+	    [SerializeField] private PlayerController _controller;
 
         public PlayerRole playerRole = new PlayerRole();
 
@@ -34,23 +29,7 @@ namespace Assets.Scripts.PlayerScripts
         {
             if (isLocalPlayer)
             {
-                switch (playerRole.role) {
-                    case Roles.Hider:
-                        Destroy(thirdPersonCameraInstance);
-                        thirdPersonCameraInstance      = Instantiate(thirdPersonCameraPrefab);
-                        thirdPersonCameraInstance.name = thirdPersonCameraPrefab.name;
-
-                        firstPersonCamera.SetActive(false);
-                        thirdPersonCameraController.SetActive(true);
-
-                        break;
-                    case Roles.Seeker:
-                        firstPersonCamera.SetActive(true);
-                        thirdPersonCameraController.SetActive(false);
-
-                        break;
-                    default: throw new UnhandledRoleException(playerRole.role);
-                }
+				_controller.ChangeMode(playerRole.role);
             }
 
             var roleSet = playerRole.GetRoleSet();
