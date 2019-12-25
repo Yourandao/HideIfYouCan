@@ -1,105 +1,99 @@
 ﻿using Assets.Scripts.Exceptions;
 using Assets.Scripts.PlayerScripts.PlayerRoles;
+
 using UnityEngine;
 
 namespace Assets.Scripts.PlayerScripts.Control
 {
-	public class PlayerController : MonoBehaviour
-	{
-		private CharacterController _controller;
+    public sealed class PlayerController : MonoBehaviour
+    {
+        [SerializeField] private CharacterController _controller = default;
 
-		private Vector3 _move = Vector3.zero;
+        private Vector3 _move = Vector3.zero;
 
-		private Camera _camera;
+        private Camera _camera;
 
-		[SerializeField] private MouseLook _mouseLook = new MouseLook();
+        [Header("Settings")]
+        [SerializeField] private MouseLook _mouseLook = new MouseLook();
 
-		[SerializeField] private float _gravity = 20.0f;
+        [SerializeField] private float _gravity = 20.0f;
 
-		[SerializeField] private float _acceleration = 1.0f;
+        [SerializeField] private float _acceleration = 1.0f;
 
-		[Header("Cameras")]
-		[SerializeField] private GameObject firstPersonCamera = default;
-		private GameObject firstPersonCameraInstance;
+        public float Speed = 10f;
 
-		[SerializeField] private GameObject thirdPersonCameraController = default;
+        public float JumpSpeed = 8.0f;
 
-		[SerializeField] private GameObject thirdPersonCameraPrefab = default;
-		private GameObject thirdPersonCameraInstance;
-		private GameObject thirdPersonCameraControllerInstance;
+        [Header("Cameras")]
+        [SerializeField] private GameObject firstPersonCamera = default;
 
-		public float Speed = 10f;
+        [SerializeField] private GameObject thirdPersonCameraController = default;
 
-		public float JumpSpeed = 8.0f;
+        [SerializeField] private GameObject thirdPersonCameraPrefab = default;
+        private                  GameObject thirdPersonCameraInstance;
 
-		public void ChangeMode(Roles role)
-		{
-			Destroy(thirdPersonCameraInstance);
-			Destroy(thirdPersonCameraControllerInstance);
-			Destroy(firstPersonCameraInstance);
+        private void Update()
+        {
+            if (Cursor.lockState != CursorLockMode.Locked)
+                Cursor.lockState = CursorLockMode.Locked;
 
-			switch (role)
-			{
-				case Roles.Hider:
-					thirdPersonCameraControllerInstance = Instantiate(thirdPersonCameraController, transform);
-					thirdPersonCameraControllerInstance.name = thirdPersonCameraController.name;
+            _mouseLook.Rotate(transform, _camera.transform);
 
-					thirdPersonCameraInstance = Instantiate(thirdPersonCameraPrefab);
-					thirdPersonCameraInstance.name = thirdPersonCameraPrefab.name;
+            if (_controller.isGrounded)
+            {
+                _move = (transform.right * Input.GetAxisRaw("Horizontal")
+                         + transform.forward * Input.GetAxisRaw("Vertical")) * Speed;
 
-					break;
+                if (Input.GetAxisRaw("SpeedModificator") == 1f)
+                {
+                    _move.x *= _acceleration;
+                    _move.z *= _acceleration;
+                }
 
-				case Roles.Seeker:
-					firstPersonCameraInstance = Instantiate(firstPersonCamera, transform);
-					firstPersonCameraInstance.name = firstPersonCamera.name;
+                if (Input.GetButton("Jump"))
+                {
+                    _move.y = JumpSpeed;
+                }
+            }
 
-					break;
+            _move.y -= _gravity * Time.deltaTime;
+        }
 
-				default: throw new UnhandledRoleException(role);
-			}
+        private void FixedUpdate()
+        {
+            _mouseLook.Rotate(transform, _camera.transform);
+            _controller.Move(_move * Time.fixedDeltaTime);
+        }
 
-			var currentCamera = role == Roles.Seeker ? firstPersonCameraInstance : thirdPersonCameraInstance;
-			_camera = currentCamera.GetComponent<Camera>();
+        public void ChangeCameraMode(Roles role)
+        {
+            Destroy(thirdPersonCameraInstance);
 
-			_mouseLook.Setup(transform, _camera.transform);
-		}
+            firstPersonCamera.SetActive(false);
+            thirdPersonCameraController.SetActive(false);
 
-		private void Start()
-		{
-			_controller = GetComponent<CharacterController>();
-		}
+            switch (role)
+            {
+                case Roles.Hider:
+                    thirdPersonCameraInstance      = Instantiate(thirdPersonCameraPrefab);
+                    thirdPersonCameraInstance.name = thirdPersonCameraPrefab.name;
 
-		private void Update()
-		{
-			if (Cursor.lockState != CursorLockMode.Locked)
-				Cursor.lockState = CursorLockMode.Locked;
+                    thirdPersonCameraController.SetActive(true);
 
-			_mouseLook.Rotate(transform, _camera.transform);
+                    break;
 
-			if (_controller.isGrounded)
-			{
-				_move = (transform.right * Input.GetAxisRaw("Horizontal")
-				         + transform.forward * Input.GetAxisRaw("Vertical")) * Speed;
+                case Roles.Seeker:
+                    firstPersonCamera.SetActive(true);
 
-				if (Input.GetKey(KeyCode.LeftShift))
-				{
-					_move.x *= _acceleration;
-					_move.z *= _acceleration;
-				}
+                    break;
 
-				if (Input.GetButton("Jump"))
-				{
-					_move.y = JumpSpeed;
-				}
-			}
+                default: throw new UnhandledRoleException(role);
+            }
 
-			_move.y -= _gravity * Time.deltaTime;
-		}
+            var currentCamera = role == Roles.Seeker ? firstPersonCamera : thirdPersonCameraInstance;
+            _camera = currentCamera.GetComponent<Camera>();
 
-		private void FixedUpdate()
-		{
-			_mouseLook.Rotate(transform, _camera.transform);
-			_controller.Move(_move * Time.fixedDeltaTime);
-		}
-	}
+            _mouseLook.Setup(transform, _camera.transform);
+        }
+    }
 }

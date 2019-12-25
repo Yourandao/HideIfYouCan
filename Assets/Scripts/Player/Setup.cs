@@ -14,7 +14,7 @@ namespace Assets.Scripts.PlayerScripts
         [Header("Components Management")]
         [SerializeField] private Behaviour[] componentsToEnable;
 
-        [SerializeField] private CharacterController controller;
+        [SerializeField] private CharacterController controller = default;
 
         public override void OnStartLocalPlayer()
         {

@@ -49,16 +49,16 @@ namespace Assets.Scripts.Managing.Game
 
             if ((float) _seekersCount / (_hidersCount + 1) < gameSettings.seekersToHidersRelation)
             {
-                if (Random.value >= .5f)
-                {
+                //if (Random.value >= .5f)
+                //{
                     spawnMessage.role = Roles.Hider;
                     _hidersCount++;
-                }
-                else
-                {
-                    spawnMessage.role = Roles.Seeker;
-                    _seekersCount++;
-                }
+                //}
+                //else
+                //{
+                //    spawnMessage.role = Roles.Seeker;
+                //    _seekersCount++;
+                //}
             }
             else
             {
