@@ -13,7 +13,19 @@ namespace Assets.Scripts.PlayerScripts.Interact
 
 		[SerializeField] private GameObject _player;
 
+		private float _initialSpeed;
+
+		private float _initialJumpSpeed;
+
 		private PlayerController _playerController;
+
+		private void Start()
+		{
+			_playerController = _player.GetComponent<PlayerController>();
+
+			_initialSpeed = _playerController.Speed;
+			_initialJumpSpeed = _playerController.JumpSpeed;
+		}
 
 		private void Update()
 		{
@@ -21,8 +33,6 @@ namespace Assets.Scripts.PlayerScripts.Interact
 			{
 				Transform();
 			}
-
-			_playerController = _player.GetComponent<PlayerController>();
 		}
 
 		private void Transform()
@@ -50,8 +60,8 @@ namespace Assets.Scripts.PlayerScripts.Interact
 					characterController.center = _player.transform.localScale / 2;
 					characterController.height = 0;
 
-					_playerController.Speed *= hitObject.SpeedReduce;
-					_playerController.JumpSpeed *= hitObject.JumpReduce;
+					_playerController.Speed = _initialSpeed * hitObject.SpeedReduce;
+					_playerController.JumpSpeed = _initialJumpSpeed * hitObject.JumpReduce;
 				}
 			}
 		}
