@@ -2,9 +2,9 @@
 
 using UnityEngine;
 
-namespace Assets.Scripts
+namespace Assets.Scripts.Exceptions
 {
-    class MultiInstanceException : Exception
+    public sealed class MultiInstanceException : Exception
     {
         public MultiInstanceException (GameObject source) : base($"{source.name}: To many instances") { }
     }
