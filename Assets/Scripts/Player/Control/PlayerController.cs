@@ -8,7 +8,7 @@ namespace Assets.Scripts.PlayerScripts.Control
 
 		private Vector3 _move = Vector3.zero;
 
-		[SerializeField] private readonly MouseLook _mouseLook = new MouseLook();
+		[SerializeField] private MouseLook _mouseLook = new MouseLook();
 
 		[SerializeField] private Camera _camera;
 
