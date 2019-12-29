@@ -33,7 +33,7 @@ namespace Assets.Scripts.PlayerScripts
 
             name = GetComponent<NetworkIdentity>().netId.ToString();
 
-            GameManager.RegisterPlayer(name, player);
+            ServerManager.RegisterPlayer(name, player);
         }
 
         [Command]
@@ -41,7 +41,7 @@ namespace Assets.Scripts.PlayerScripts
 
         public void OnDisable()
         {
-            GameManager.UnregisterPlayer(name, player.role);
+            ServerManager.UnregisterPlayer(name, player.role);
         }
     }
 }

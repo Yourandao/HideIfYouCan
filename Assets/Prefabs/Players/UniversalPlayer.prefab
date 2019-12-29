@@ -97,11 +97,9 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.1
   controller: {fileID: 7722692716146964897}
-  playerRole:
-    role: 0
-    hiderRoleSet: []
-    seekerRoleSet: []
-    defaultRoleSet: []
+  role: 0
+  enabledDuringGame:
+  - {fileID: 7722692716146964897}
 --- !u!114 &2129284956287590308
 MonoBehaviour:
   m_ObjectHideFlags: 0
