@@ -23,12 +23,12 @@ namespace Assets.Scripts.Managing.Game
             gameState = GameState.Starting;
         }
 
-        private void Update()
+        private void FixedUpdate()
         {
             if (gameState == GameState.Finished || gameState == GameState.Starting)
                 return;
 
-            time += Time.deltaTime;
+            time += Time.fixedDeltaTime;
 
             switch (gameState)
             {
