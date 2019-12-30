@@ -1,19 +1,20 @@
 ﻿using System.Collections.Generic;
 
 using Assets.Scripts.Exceptions;
+using Assets.Scripts.Management.Game;
 using Assets.Scripts.PlayerScripts;
 
 using Mirror;
 
 using UnityEngine;
 
-namespace Assets.Scripts.Managing.Game
+namespace Assets.Scripts.Management.Network
 {
     public sealed class ServerManager : NetworkManager
     {
         public static ServerManager NewSingleton { get; private set; }
 
-        [Header("Extra Components")]
+        [Header("Control Components")]
         [SerializeField] private GameManager gameManager = default;
 
         private static Dictionary<string, Player> _players = new Dictionary<string, Player>();

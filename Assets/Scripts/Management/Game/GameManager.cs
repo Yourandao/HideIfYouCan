@@ -1,11 +1,12 @@
 ﻿using Assets.Scripts.Exceptions;
+using Assets.Scripts.Management.Network;
 using Assets.Scripts.PlayerScripts;
 
 using UnityEngine;
 
 using Random = UnityEngine.Random;
 
-namespace Assets.Scripts.Managing.Game
+namespace Assets.Scripts.Management.Game
 {
     public sealed class GameManager : MonoBehaviour
     {

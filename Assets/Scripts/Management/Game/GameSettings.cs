@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Assets.Scripts.Managing.Game
+namespace Assets.Scripts.Management.Game
 {
     [System.Serializable]
     public sealed class GameSettings

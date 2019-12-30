@@ -1,4 +1,4 @@
-﻿using Assets.Scripts.Managing.Game;
+﻿using Assets.Scripts.Management.Network;
 
 using Mirror;
 
