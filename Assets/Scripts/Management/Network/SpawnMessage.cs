@@ -2,7 +2,7 @@
 
 using Mirror;
 
-namespace Assets.Scripts.Managing.Game
+namespace Assets.Scripts.Management.Network
 {
     public class SpawnMessage : MessageBase
     {
