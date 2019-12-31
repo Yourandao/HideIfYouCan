@@ -41,6 +41,8 @@ namespace Assets.Scripts.Management.Game
 
                         gameState++;
                         time = 0f;
+
+                        Debug.Log("Freeze time expired");
                     }
 
                     break;
@@ -51,6 +53,8 @@ namespace Assets.Scripts.Management.Game
 
                         gameState++;
                         time = 0f;
+
+                        Debug.Log("Time to hide has ended");
                     }
 
                     break;
@@ -61,6 +65,8 @@ namespace Assets.Scripts.Management.Game
 
                         gameState++;
                         time = 0f;
+
+                        Debug.Log("Round ended");
                     }
 
                     break;
@@ -113,9 +119,11 @@ namespace Assets.Scripts.Management.Game
             }
         }
 
-        public void AllPlayersReady()
+        public void StartGame()
         {
             gameState++;
+
+            Debug.Log("Game started");
         }
     }
 }

@@ -506,9 +506,9 @@ namespace Mirror
         /// This allows customization of the creation of the room-player object on the server.
         /// <para>By default the roomPlayerPrefab is used to create the room-player, but this function allows that behaviour to be customized.</para>
         /// </summary>
-        /// <param name="conn">The connection the player object is for.</param>
+        /// <param name="connection">The connection the player object is for.</param>
         /// <returns>The new room-player object.</returns>
-        public virtual GameObject OnRoomServerCreateRoomPlayer(NetworkConnection conn)
+        public virtual GameObject OnRoomServerCreateRoomPlayer(NetworkConnection connection)
         {
             return null;
         }
@@ -564,8 +564,8 @@ namespace Mirror
         /// <summary>
         /// This is called on the client when it connects to server.
         /// </summary>
-        /// <param name="conn">The connection that connected.</param>
-        public virtual void OnRoomClientConnect(NetworkConnection conn) { }
+        /// <param name="connection">The connection that connected.</param>
+        public virtual void OnRoomClientConnect(NetworkConnection connection) { }
 
         /// <summary>
         /// This is called on the client when disconnected from a server.
