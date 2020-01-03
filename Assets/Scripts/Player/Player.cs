@@ -1,5 +1,4 @@
 ﻿using Assets.Scripts.PlayerScripts.Control;
-using Assets.Scripts.PlayerScripts.PlayerRoles;
 
 using Mirror;
 
@@ -11,7 +10,10 @@ namespace Assets.Scripts.PlayerScripts
     {
         [SerializeField] private PlayerController controller = default;
 
-        public PlayerRole playerRole = new PlayerRole();
+        [HideInInspector]
+        [SyncVar] public Role role;
+
+        [SerializeField] private Behaviour[] enabledDuringGame;
 
         public void Setup()
         {
@@ -19,22 +21,37 @@ namespace Assets.Scripts.PlayerScripts
         }
 
         [Command]
-        private void CmdSetup() => RpcSetup();
+        private void CmdSetup()
+        {
+            RpcSetup();
+        }
 
         [ClientRpc]
-        private void RpcSetup() => SetDefaults();
-
-        private void SetDefaults()
+        private void RpcSetup()
         {
             if (isLocalPlayer)
             {
-                controller.ChangeCameraMode(playerRole.role);
+                controller.ChangeCameraMode(role);
             }
 
-            var roleSet = playerRole.GetRoleSet();
-            Utility.ToggleComponents(ref roleSet, true);
+            Utility.ToggleComponents(ref enabledDuringGame, false);
+        }
 
-            Utility.ToggleComponents(ref playerRole.defaultRoleSet, false);
+        [Command]
+        public void CmdStartGame()
+        {
+            RpcStartGame();
+        }
+
+        [ClientRpc]
+        private void RpcStartGame()
+        {
+            Utility.ToggleComponents(ref enabledDuringGame, true);
+        }
+
+        private void Update()
+        {
+            // TODO: Send ready state
         }
     }
 }
