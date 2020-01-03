@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 4353379490438976488}
   - component: {fileID: 5605157856868512961}
   - component: {fileID: 2722749715747069115}
-  - component: {fileID: 1483694915}
+  - component: {fileID: 2437364401026801283}
   m_Layer: 0
   m_Name: _GameManager
   m_TagString: Untagged
@@ -77,11 +77,18 @@ MonoBehaviour:
   authenticator: {fileID: 0}
   playerPrefab: {fileID: 125477385085476026, guid: abcedfe8e3a913847847cda15d4a4fa9,
     type: 3}
-  autoCreatePlayer: 0
+  autoCreatePlayer: 1
   playerSpawnMethod: 0
   spawnPrefabs: []
+  showRoomGUI: 1
+  minPlayers: 1
+  roomPlayerPrefab: {fileID: 351418858302777871, guid: c52325cd4ac554c45b137fe71b2da662,
+    type: 3}
+  RoomScene: Room
+  GameplayScene: TestMap
+  roomSlots: []
+  allPlayersReady: 0
   gameManager: {fileID: 4353379490438976488}
-  HUD: {fileID: 1483694915}
 --- !u!114 &2722749715747069115
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -122,7 +129,7 @@ MonoBehaviour:
   NoDelay: 1
   serverMaxMessageSize: 16384
   clientMaxMessageSize: 16384
---- !u!114 &1483694915
+--- !u!114 &2437364401026801283
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

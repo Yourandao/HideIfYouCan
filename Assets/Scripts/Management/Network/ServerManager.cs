@@ -10,61 +10,56 @@ using UnityEngine;
 
 namespace Assets.Scripts.Management.Network
 {
-    public sealed class ServerManager : NetworkManager
+    public sealed class ServerManager : NetworkRoomManager
     {
-        public static ServerManager NewSingleton { get; private set; }
+        public static ServerManager SingletonOverride { get; private set; }
 
         [Header("Control Components")]
-        [SerializeField] private GameManager gameManager = default;
+        public GameManager gameManager = default;
 
         private static Dictionary<string, Player> _players = new Dictionary<string, Player>();
 
-        private static int _readyPlayersNum;
+        #if UNITY_SERVER
+        private bool isServerStarted;
+        #endif
 
         public override void Awake()
         {
             base.Awake();
 
-            if (NewSingleton != null)
+            if (SingletonOverride != null)
                 throw new MultiInstanceException(gameObject);
 
-            NewSingleton = this;
+            SingletonOverride = this;
+
+            #if UNITY_SERVER
+            if (isServerStarted)
+                return;
+
+            StartServer();
+
+            isServerStarted = true;
+
+            #endif
         }
 
-        #region Server management
-
-        public override void OnStartServer()
+        public override void OnRoomStartServer()
         {
-            base.OnStartServer();
-
-            NetworkServer.RegisterHandler<SpawnMessage>(OnSetupDone);
+            base.OnRoomStartServer();
 
             _players.Clear();
         }
 
-        public override void OnClientConnect(NetworkConnection connection)
+        public override bool OnRoomServerSceneLoadedForPlayer(GameObject roomPlayer, GameObject gamePlayer)
         {
-            base.OnClientConnect(connection);
+            var role = roomPlayer.GetComponent<RoomPlayer>().role;
 
-            var spawnMessage = new SpawnMessage
-            {
-                role = gameManager.AssignRole()
-            };
+            gamePlayer.GetComponent<Player>().role = role;
 
-            connection.Send(spawnMessage);
+            gameManager.StartGame();
+
+            return true;
         }
-
-        private void OnSetupDone(NetworkConnection connection, SpawnMessage message)
-        {
-            var instance = Instantiate(playerPrefab);
-
-            var player = instance.GetComponent<Player>();
-            player.role = message.role;
-
-            NetworkServer.AddPlayerForConnection(connection, instance);
-        }
-
-        #endregion
 
         #region Player management
 
@@ -77,20 +72,10 @@ namespace Assets.Scripts.Management.Network
         {
             _players.Remove(playerName);
 
-            NewSingleton.gameManager.UnassignRole(role);
+            SingletonOverride.gameManager.UnassignRole(role);
         }
 
         public static IEnumerable<Player> GetAllPlayers() => _players.Values;
-
-        public void PlayerReady()
-        {
-            _readyPlayersNum++;
-
-            if (_readyPlayersNum != _players.Count)
-                return;
-
-            gameManager.AllPlayersReady();
-        }
 
         #endregion
     }
