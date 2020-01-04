@@ -1,14 +1,14 @@
 ﻿using System.Collections.Generic;
 
-using Assets.Scripts.Exceptions;
-using Assets.Scripts.Management.Game;
-using Assets.Scripts.PlayerScripts;
-
 using Mirror;
+
+using Scripts.Exceptions;
+using Scripts.Management.Game;
+using Scripts.PlayerScripts;
 
 using UnityEngine;
 
-namespace Assets.Scripts.Management.Network
+namespace Scripts.Management.Network
 {
     public sealed class ServerManager : NetworkRoomManager
     {
@@ -56,9 +56,14 @@ namespace Assets.Scripts.Management.Network
 
             gamePlayer.GetComponent<Player>().role = role;
 
-            gameManager.StartGame();
-
             return true;
+        }
+
+        public override void OnRoomServerPlayersReady()
+        {
+            base.OnRoomServerPlayersReady();
+
+            gameManager.StartGame();
         }
 
         #region Player management

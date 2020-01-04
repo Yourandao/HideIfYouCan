@@ -1,11 +1,11 @@
-﻿using Assets.Scripts.Management.Network;
-using Assets.Scripts.PlayerScripts;
+﻿using Mirror;
 
-using Mirror;
+using Scripts.Management.Network;
+using Scripts.PlayerScripts;
 
 using UnityEngine;
 
-namespace Assets.Scripts.Management.Game
+namespace Scripts.Management.Game
 {
     public sealed class RoomPlayer : NetworkRoomPlayer
     {

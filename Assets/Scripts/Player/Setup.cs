@@ -1,20 +1,24 @@
-﻿using Assets.Scripts.Management.Network;
+﻿using Mirror;
 
-using Mirror;
+using Scripts.Management.Network;
 
 using UnityEngine;
 
-namespace Assets.Scripts.PlayerScripts
+namespace Scripts.PlayerScripts
 {
     [RequireComponent(typeof(Player))]
     public sealed class Setup : NetworkBehaviour
     {
-        [SerializeField] private Player player = default;
+        [SerializeField] private Player player;
 
         [Header("Components Management")]
         [SerializeField] private Behaviour[] componentsToEnable;
 
-        [SerializeField] private CharacterController controller = default;
+        [SerializeField] private CharacterController controller;
+
+        [SerializeField] private GameObject seekerModel;
+
+        [SerializeField] private LayerMask fpModelLayer;
 
         public override void OnStartLocalPlayer()
         {
@@ -22,6 +26,8 @@ namespace Assets.Scripts.PlayerScripts
 
             Utility.ToggleComponents(ref componentsToEnable, true);
             controller.enabled = true;
+
+            Utility.SetLayerRecursively(seekerModel, Utility.LayerMaskToLayer(fpModelLayer));
 
             player.Setup();
             CmdSetName(name);
@@ -37,7 +43,7 @@ namespace Assets.Scripts.PlayerScripts
         }
 
         [Command]
-        private void CmdSetName(string newName) => name = newName;
+        private void CmdSetName(string name) => gameObject.name = name;
 
         public void OnDisable()
         {

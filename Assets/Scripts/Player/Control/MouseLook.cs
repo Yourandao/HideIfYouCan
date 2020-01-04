@@ -2,37 +2,48 @@
 
 using UnityEngine;
 
-namespace Assets.Scripts.PlayerScripts.Control
+namespace Scripts.PlayerScripts.Control
 {
-	[Serializable]
-	public class MouseLook
-	{
-		private Transform _playerTransform;
-		private Transform _cameraTransform;
+    [Serializable]
+    public sealed class MouseLook
+    {
+        [SerializeField] private float xSensitivity = 2.5f;
+        [SerializeField] private float ySensitivity = 2.5f;
 
-		private float _xRotation;
+        private Transform playerTransform;
+        private Transform cameraTransform;
 
-		[Header("Sensitivity")] [SerializeField] [Range(10.0f, 200.0f)] private float _sensitivity = 100f;
+        private float mouseX;
+        private float mouseY;
 
-		public void Setup(Transform player, Transform camera)
-		{
-			_playerTransform = player;
-			_cameraTransform = camera;
-		}
+        private float xRotation;
 
-		public void Rotate(Transform player, Transform camera)
-		{
-			_playerTransform = player;
-			_cameraTransform = camera;
+        private bool isSetUp;
 
-			var mouseX = Input.GetAxisRaw("Mouse X") * _sensitivity * Time.deltaTime;
-			var mouseY = Input.GetAxisRaw("Mouse Y") * _sensitivity * Time.deltaTime;
+        public void Setup(Transform player, Transform camera)
+        {
+            playerTransform = player;
+            cameraTransform = camera;
 
-			_xRotation -= mouseY;
-			_xRotation = Mathf.Clamp(_xRotation, -90f, 90f);
+            isSetUp = true;
+        }
 
-			_cameraTransform.localRotation = Quaternion.Euler(_xRotation, 0, 0);
-			_playerTransform.Rotate(Vector3.up * mouseX);
-		}
-	}
+        public void InputRotation()
+        {
+            mouseX = Input.GetAxisRaw("Mouse X") * xSensitivity;
+            mouseY = Input.GetAxisRaw("Mouse Y") * ySensitivity;
+        }
+
+        public void Rotate()
+        {
+            if (!isSetUp)
+                return;
+
+            xRotation -= mouseY;
+            xRotation =  Mathf.Clamp(xRotation, -90f, 90f);
+
+            cameraTransform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+            playerTransform.Rotate(Vector3.up * mouseX);
+        }
+    }
 }

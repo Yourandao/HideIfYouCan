@@ -2,7 +2,7 @@
 
 using UnityEngine;
 
-namespace Assets.Scripts.Exceptions
+namespace Scripts.Exceptions
 {
     public sealed class MultiInstanceException : Exception
     {

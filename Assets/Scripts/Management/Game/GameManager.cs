@@ -1,12 +1,12 @@
-﻿using Assets.Scripts.Exceptions;
-using Assets.Scripts.Management.Network;
-using Assets.Scripts.PlayerScripts;
+﻿using Scripts.Exceptions;
+using Scripts.Management.Network;
+using Scripts.PlayerScripts;
 
 using UnityEngine;
 
 using Random = UnityEngine.Random;
 
-namespace Assets.Scripts.Management.Game
+namespace Scripts.Management.Game
 {
     public sealed class GameManager : MonoBehaviour
     {
@@ -37,10 +37,10 @@ namespace Assets.Scripts.Management.Game
                     if (time >= gameSettings.freezeTime)
                     {
                         foreach (var player in ServerManager.GetAllPlayers())
-                            player.CmdStartGame();
+                            player.RpcStartGame();
 
-                        gameState++;
-                        time = 0f;
+                        gameState = GameState.HideTime;
+                        time      = 0f;
 
                         Debug.Log("Freeze time expired");
                     }
@@ -51,7 +51,7 @@ namespace Assets.Scripts.Management.Game
                     {
                         // TODO: Enable seekers
 
-                        gameState++;
+                        gameState = GameState.SeekTime;
                         time = 0f;
 
                         Debug.Log("Time to hide has ended");
@@ -63,7 +63,7 @@ namespace Assets.Scripts.Management.Game
                     {
                         // TODO: E.g. show game summary
 
-                        gameState++;
+                        gameState = GameState.Ending;
                         time = 0f;
 
                         Debug.Log("Round ended");
@@ -75,7 +75,7 @@ namespace Assets.Scripts.Management.Game
                     {
                         // TODO: E.g switch map or close server
 
-                        gameState++;
+                        gameState = GameState.Finished;
                     }
 
                     break;
@@ -121,7 +121,7 @@ namespace Assets.Scripts.Management.Game
 
         public void StartGame()
         {
-            gameState++;
+            gameState = GameState.FreezeTime;
 
             Debug.Log("Game started");
         }

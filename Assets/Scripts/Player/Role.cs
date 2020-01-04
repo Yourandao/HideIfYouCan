@@ -1,4 +1,4 @@
-﻿namespace Assets.Scripts.PlayerScripts
+﻿namespace Scripts.PlayerScripts
 {
     public enum Role
     {

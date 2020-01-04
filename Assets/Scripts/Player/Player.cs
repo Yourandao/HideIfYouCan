@@ -1,19 +1,33 @@
-﻿using Assets.Scripts.PlayerScripts.Control;
+﻿using Mirror;
 
-using Mirror;
+using Scripts.Components;
+using Scripts.PlayerScripts.Control;
 
 using UnityEngine;
 
-namespace Assets.Scripts.PlayerScripts
+namespace Scripts.PlayerScripts
 {
     public sealed class Player : NetworkBehaviour
     {
-        [SerializeField] private PlayerController controller = default;
+        [SerializeField] private PlayerController controller;
 
         [HideInInspector]
         [SyncVar] public Role role;
 
-        [SerializeField] private Behaviour[] enabledDuringGame;
+        private bool canMove;
+
+        [SerializeField] private Transform modelHolder;
+
+        [SerializeField] private GameObject seekerModel;
+
+        private GameObject modelInstance;
+
+        private Prop prop;
+
+        [Header("Interaction Settings")]
+        [SerializeField] private float interactionDistance = 10f;
+
+        [SerializeField] private LayerMask interactableObjects;
 
         public void Setup()
         {
@@ -21,37 +35,65 @@ namespace Assets.Scripts.PlayerScripts
         }
 
         [Command]
-        private void CmdSetup()
-        {
-            RpcSetup();
-        }
+        private void CmdSetup() => RpcSetup();
 
         [ClientRpc]
         private void RpcSetup()
         {
             if (isLocalPlayer)
-            {
-                controller.ChangeCameraMode(role);
-            }
-
-            Utility.ToggleComponents(ref enabledDuringGame, false);
-        }
-
-        [Command]
-        public void CmdStartGame()
-        {
-            RpcStartGame();
+                controller.Configure(true);
         }
 
         [ClientRpc]
-        private void RpcStartGame()
+        public void RpcStartGame()
         {
-            Utility.ToggleComponents(ref enabledDuringGame, true);
+            canMove = true;
+
+            controller.CanMove = true;
         }
 
         private void Update()
         {
-            // TODO: Send ready state
+            if (!isLocalPlayer)
+                return;
+
+            if (!canMove)
+                return;
+
+            if (Input.GetButtonDown("Interact") && role == Role.Hider)
+                Transform();
+        }
+
+        [Client]
+        private void Transform() => RpcTransform();
+
+        [Command]
+        private void CmdTransform()
+        {
+            if (Physics.Raycast(controller.CurrentCamera.transform.position, controller.CurrentCamera.transform.forward,
+                                interactionDistance, interactableObjects))
+            {
+                RpcTransform();
+            }
+        }
+
+        [ClientRpc]
+        private void RpcTransform()
+        {
+            Physics.Raycast(controller.CurrentCamera.transform.position, controller.CurrentCamera.transform.forward,
+                            out var hit, interactionDistance, interactableObjects);
+
+            prop = hit.transform.GetComponent<PropController>().prop;
+
+            seekerModel.SetActive(false);
+            Destroy(modelInstance);
+
+            modelInstance = Instantiate(prop.prefab, modelHolder);
+
+            controller.speedMultiplier     = prop.speedMultiplier;
+            controller.jumpForceMultiplier = prop.jumpForceMultiplier;
+
+            controller.Configure(false);
         }
     }
 }
