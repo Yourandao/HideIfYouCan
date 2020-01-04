@@ -1,96 +1,155 @@
-﻿using Assets.Scripts.Exceptions;
+﻿using Mirror;
 
 using UnityEngine;
 
-namespace Assets.Scripts.PlayerScripts.Control
+namespace Scripts.PlayerScripts.Control
 {
+    [RequireComponent(typeof(CharacterController))]
     public sealed class PlayerController : MonoBehaviour
     {
-        [SerializeField] private CharacterController _controller = default;
+        [SerializeField] private CharacterController controller;
 
-        private Vector3 _move = Vector3.zero;
+        [SerializeField] private Animator        animator;
+        [SerializeField] private NetworkAnimator networkAnimator;
 
-        private Camera _camera;
-
-        [Header("Settings")]
-        [SerializeField] private MouseLook _mouseLook = new MouseLook();
-
-        [SerializeField] private float _gravity = 20.0f;
-
-        [SerializeField] private float _acceleration = 1.0f;
-
-        public float Speed = 10f;
-
-        public float JumpSpeed = 8.0f;
+        private static readonly int _horizontal = Animator.StringToHash("Horizontal");
+        private static readonly int _vertical   = Animator.StringToHash("Vertical");
+        private static readonly int _isRunning  = Animator.StringToHash("IsRunning");
 
         [Header("Cameras")]
-        [SerializeField] private GameObject firstPersonCamera = default;
+        [SerializeField] private GameObject firstPersonCamera;
 
-        [SerializeField] private GameObject thirdPersonCameraController = default;
+        [SerializeField] private GameObject thirdPersonCameraController;
 
-        [SerializeField] private GameObject thirdPersonCameraPrefab = default;
+        [SerializeField] private GameObject thirdPersonCameraPrefab;
         private                  GameObject thirdPersonCameraInstance;
+
+        public Camera CurrentCamera { get; private set; }
+
+        [Header("Movement")]
+        [SerializeField] private MouseLook mouseLook = new MouseLook();
+
+        [SerializeField] private float jogSpeed  = 2.5f;
+        [SerializeField] private float runSpeed  = 5f;
+        [SerializeField] private float jumpForce = 5f;
+
+        [SerializeField] [Range(0f, 1f)] private float smoothFactor = .25f;
+
+        [HideInInspector] public float speedMultiplier     = 1f;
+        [HideInInspector] public float jumpForceMultiplier = 1f;
+
+        public bool Freezed { get; set; }
+
+        private bool jumpEnabled;
+
+        private float speed;
+
+        private Vector3 input;
+
+        private Vector3 velocity;
+        private Vector3 localVelocity;
+
+        private void Start()
+        {
+            animator.SetFloat(_horizontal, 0f);
+            animator.SetFloat(_vertical, 0f);
+
+            Freezed = true;
+
+            speed = jogSpeed;
+
+            input = new Vector3();
+
+            velocity      = new Vector3();
+            localVelocity = new Vector3();
+        }
 
         private void Update()
         {
-            if (Cursor.lockState != CursorLockMode.Locked)
-                Cursor.lockState = CursorLockMode.Locked;
+            mouseLook.InputRotation();
 
-            if (_controller.isGrounded)
+            //if (Cursor.lockState != CursorLockMode.Locked)
+            //    Cursor.lockState = CursorLockMode.Locked;
+
+            if (Freezed)
+                return;
+
+            if (controller.isGrounded)
             {
-                _move = (transform.right * Input.GetAxisRaw("Horizontal")
-                         + transform.forward * Input.GetAxisRaw("Vertical")) * Speed;
-
-                if (Input.GetAxisRaw("SpeedModificator") == 1f)
+                if (Input.GetButtonDown("Run"))
                 {
-                    _move.x *= _acceleration;
-                    _move.z *= _acceleration;
+                    speed = runSpeed;
+
+                    animator.SetBool(_isRunning, true);
+                }
+                else if (Input.GetButtonUp("Run"))
+                {
+                    speed = jogSpeed;
+
+                    animator.SetBool(_isRunning, false);
                 }
 
-                if (Input.GetButton("Jump"))
-                {
-                    _move.y = JumpSpeed;
-                }
+                input.Set(Input.GetAxisRaw("Horizontal"), 0f, Input.GetAxisRaw("Vertical"));
+
+                if (Input.GetButtonDown("Jump") && jumpEnabled)
+                    velocity.y = jumpForce * jumpForceMultiplier;
             }
-
-            _move.y -= _gravity * Time.deltaTime;
+            else
+                velocity += Physics.gravity * Time.deltaTime;
         }
 
         private void FixedUpdate()
         {
-            _mouseLook.Rotate(transform, _camera.transform);
-            _controller.Move(_move * Time.fixedDeltaTime);
+            mouseLook.Rotate();
+
+            var desiredVelocity = transform.right * input.x +
+                                  transform.forward * input.z;
+
+            velocity = Vector3.Lerp(velocity,
+                                    desiredVelocity * speed * speedMultiplier,
+                                    smoothFactor);
+
+            localVelocity = Vector3.Lerp(localVelocity, input, smoothFactor);
+
+            controller.Move(velocity * Time.fixedDeltaTime);
+
+            animator.SetFloat(_horizontal, localVelocity.x);
+            animator.SetFloat(_vertical, localVelocity.z);
         }
 
-        public void ChangeCameraMode(Role role)
+        public void Configure(bool firstPerson)
         {
             Destroy(thirdPersonCameraInstance);
 
             firstPersonCamera.SetActive(false);
             thirdPersonCameraController.SetActive(false);
 
-            switch (role)
+            networkAnimator.enabled = false;
+            animator.enabled        = false;
+
+            jumpEnabled = false;
+
+            if (firstPerson)
             {
-                case Role.Hider:
-                    thirdPersonCameraInstance      = Instantiate(thirdPersonCameraPrefab);
-                    thirdPersonCameraInstance.name = thirdPersonCameraPrefab.name;
+                firstPersonCamera.SetActive(true);
 
-                    thirdPersonCameraController.SetActive(true);
+                networkAnimator.enabled = true;
+                animator.enabled        = true;
+            }
+            else
+            {
+                thirdPersonCameraInstance      = Instantiate(thirdPersonCameraPrefab);
+                thirdPersonCameraInstance.name = thirdPersonCameraPrefab.name;
 
-                    break;
+                thirdPersonCameraController.SetActive(true);
 
-                case Role.Seeker:
-                    firstPersonCamera.SetActive(true);
-
-                    break;
-
-                default: throw new UnhandledRoleException(role);
+                jumpEnabled = true;
             }
 
-            var currentCamera = role == Role.Seeker ? firstPersonCamera : thirdPersonCameraInstance;
-            _camera = currentCamera.GetComponent<Camera>();
+            var cameraObject = firstPerson ? firstPersonCamera : thirdPersonCameraInstance;
+            CurrentCamera = cameraObject.GetComponent<Camera>();
 
-            _mouseLook.Setup(transform, _camera.transform);
+            mouseLook.Setup(transform, CurrentCamera.transform);
         }
     }
 }

@@ -1,14 +1,15 @@
 ﻿using System.Collections.Generic;
 
-using Assets.Scripts.Exceptions;
-using Assets.Scripts.Management.Game;
-using Assets.Scripts.PlayerScripts;
-
 using Mirror;
+
+using Scripts.Components;
+using Scripts.Exceptions;
+using Scripts.Management.Game;
+using Scripts.PlayerScripts;
 
 using UnityEngine;
 
-namespace Assets.Scripts.Management.Network
+namespace Scripts.Management.Network
 {
     public sealed class ServerManager : NetworkRoomManager
     {
@@ -17,7 +18,7 @@ namespace Assets.Scripts.Management.Network
         [Header("Control Components")]
         public GameManager gameManager = default;
 
-        private static Dictionary<string, Player> _players = new Dictionary<string, Player>();
+        private static Dictionary<uint, Player> _players = new Dictionary<uint, Player>();
 
         #if UNITY_SERVER
         private bool isServerStarted;
@@ -56,24 +57,31 @@ namespace Assets.Scripts.Management.Network
 
             gamePlayer.GetComponent<Player>().role = role;
 
-            gameManager.StartGame();
-
             return true;
+        }
+
+        public override void OnRoomServerPlayersReady()
+        {
+            base.OnRoomServerPlayersReady();
+
+            gameManager.StartGame();
         }
 
         #region Player management
 
-        public static void RegisterPlayer(string name, Player player)
+        public static void RegisterPlayer(uint id, Player player)
         {
-            _players.Add(name, player);
+            _players.Add(id, player);
         }
 
-        public static void UnregisterPlayer(string playerName, Role role)
+        public static void UnregisterPlayer(uint id, Role role)
         {
-            _players.Remove(playerName);
+            _players.Remove(id);
 
             SingletonOverride.gameManager.UnassignRole(role);
         }
+
+        public static Player GetPlayer(uint id) => _players[id];
 
         public static IEnumerable<Player> GetAllPlayers() => _players.Values;
 

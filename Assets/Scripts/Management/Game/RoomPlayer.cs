@@ -1,11 +1,11 @@
-﻿using Assets.Scripts.Management.Network;
-using Assets.Scripts.PlayerScripts;
+﻿using Mirror;
 
-using Mirror;
+using Scripts.Components;
+using Scripts.Management.Network;
 
 using UnityEngine;
 
-namespace Assets.Scripts.Management.Game
+namespace Scripts.Management.Game
 {
     public sealed class RoomPlayer : NetworkRoomPlayer
     {
@@ -17,6 +17,14 @@ namespace Assets.Scripts.Management.Game
             base.OnClientEnterRoom();
 
             role = ServerManager.SingletonOverride.gameManager.AssignRole();
+
+            name = netId.ToString();
+
+            if (isLocalPlayer)
+                CmdSetName(name);
         }
+
+        [Command]
+        private void CmdSetName(string name) => gameObject.name = name;
     }
 }

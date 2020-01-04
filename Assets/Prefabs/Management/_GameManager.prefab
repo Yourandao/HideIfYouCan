@@ -47,7 +47,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameSettings:
-    freezeTime: 10
+    freezeTime: 1
     hideTime: 30
     seekTime: 90
     endingTime: 10
@@ -67,7 +67,7 @@ MonoBehaviour:
   dontDestroyOnLoad: 1
   runInBackground: 1
   startOnHeadless: 1
-  serverTickRate: 60
+  serverTickRate: 100
   showDebugMessages: 0
   offlineScene: 
   onlineScene: 
@@ -78,7 +78,7 @@ MonoBehaviour:
   playerPrefab: {fileID: 125477385085476026, guid: abcedfe8e3a913847847cda15d4a4fa9,
     type: 3}
   autoCreatePlayer: 1
-  playerSpawnMethod: 0
+  playerSpawnMethod: 1
   spawnPrefabs: []
   showRoomGUI: 1
   minPlayers: 1

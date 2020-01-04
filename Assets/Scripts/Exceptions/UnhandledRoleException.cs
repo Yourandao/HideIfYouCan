@@ -1,8 +1,8 @@
 ﻿using System;
 
-using Assets.Scripts.PlayerScripts;
+using Scripts.Components;
 
-namespace Assets.Scripts.Exceptions
+namespace Scripts.Exceptions
 {
     public sealed class UnhandledRoleException : Exception
     {

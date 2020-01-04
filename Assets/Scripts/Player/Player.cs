@@ -1,19 +1,22 @@
-﻿using Assets.Scripts.PlayerScripts.Control;
+﻿using Mirror;
 
-using Mirror;
+using Scripts.Components;
+using Scripts.PlayerScripts.Control;
 
 using UnityEngine;
 
-namespace Assets.Scripts.PlayerScripts
+namespace Scripts.PlayerScripts
 {
+    [RequireComponent(typeof(PlayerController))]
+    [RequireComponent(typeof(Transformation))]
     public sealed class Player : NetworkBehaviour
     {
-        [SerializeField] private PlayerController controller = default;
+        [SerializeField] private PlayerController controller;
+
+        public Transformation transformation;
 
         [HideInInspector]
         [SyncVar] public Role role;
-
-        [SerializeField] private Behaviour[] enabledDuringGame;
 
         public void Setup()
         {
@@ -21,37 +24,19 @@ namespace Assets.Scripts.PlayerScripts
         }
 
         [Command]
-        private void CmdSetup()
-        {
-            RpcSetup();
-        }
+        private void CmdSetup() => RpcSetup();
 
         [ClientRpc]
         private void RpcSetup()
         {
             if (isLocalPlayer)
-            {
-                controller.ChangeCameraMode(role);
-            }
-
-            Utility.ToggleComponents(ref enabledDuringGame, false);
-        }
-
-        [Command]
-        public void CmdStartGame()
-        {
-            RpcStartGame();
+                controller.Configure(true);
         }
 
         [ClientRpc]
-        private void RpcStartGame()
+        public void RpcStartGame()
         {
-            Utility.ToggleComponents(ref enabledDuringGame, true);
-        }
-
-        private void Update()
-        {
-            // TODO: Send ready state
+            controller.Freezed = false;
         }
     }
 }
