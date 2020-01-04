@@ -37,9 +37,11 @@ namespace Scripts.PlayerScripts
         {
             base.OnStartClient();
 
-            name = GetComponent<NetworkIdentity>().netId.ToString();
+            uint id = GetComponent<NetworkIdentity>().netId;
 
-            ServerManager.RegisterPlayer(name, player);
+            name = id.ToString();
+
+            ServerManager.RegisterPlayer(id, player);
         }
 
         [Command]
@@ -47,7 +49,7 @@ namespace Scripts.PlayerScripts
 
         public void OnDisable()
         {
-            ServerManager.UnregisterPlayer(name, player.role);
+            ServerManager.UnregisterPlayer(netId, player.role);
         }
     }
 }

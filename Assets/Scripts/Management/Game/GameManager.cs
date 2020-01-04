@@ -1,6 +1,6 @@
-﻿using Scripts.Exceptions;
+﻿using Scripts.Components;
+using Scripts.Exceptions;
 using Scripts.Management.Network;
-using Scripts.PlayerScripts;
 
 using UnityEngine;
 
@@ -52,7 +52,7 @@ namespace Scripts.Management.Game
                         // TODO: Enable seekers
 
                         gameState = GameState.SeekTime;
-                        time = 0f;
+                        time      = 0f;
 
                         Debug.Log("Time to hide has ended");
                     }
@@ -64,7 +64,7 @@ namespace Scripts.Management.Game
                         // TODO: E.g. show game summary
 
                         gameState = GameState.Ending;
-                        time = 0f;
+                        time      = 0f;
 
                         Debug.Log("Round ended");
                     }

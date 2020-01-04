@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 7128905188886796644}
   - component: {fileID: 7837650515227380864}
   - component: {fileID: 7722692716146964897}
+  - component: {fileID: 4727609327375919313}
   - component: {fileID: 1664009907526994776}
   - component: {fileID: 2129284956287590308}
   - component: {fileID: 3993366079011660372}
@@ -56,8 +57,8 @@ CharacterController:
   m_Height: 1.8
   m_Radius: 0.5
   m_SlopeLimit: 45
-  m_StepOffset: 0.3
-  m_SkinWidth: 0.08
+  m_StepOffset: 0.25
+  m_SkinWidth: 0.0001
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0.9, z: 0}
 --- !u!114 &7722692716146964897
@@ -88,6 +89,28 @@ MonoBehaviour:
   smoothFactor: 0.2
   speedMultiplier: 1
   jumpForceMultiplier: 1
+--- !u!114 &4727609327375919313
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 125477385085476026}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5632eadab4068b4089e054744313d06, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncMode: 0
+  syncInterval: 0.1
+  player: {fileID: 1664009907526994776}
+  controller: {fileID: 7722692716146964897}
+  interactionDistance: 5
+  interactableObjects:
+    serializedVersion: 2
+    m_Bits: 512
+  seekerModel: {fileID: 1119986346287998157}
+  modelHolder: {fileID: 5177748670604408609}
 --- !u!114 &1664009907526994776
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -103,13 +126,8 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.01
   controller: {fileID: 7722692716146964897}
+  transformation: {fileID: 4727609327375919313}
   role: 0
-  modelHolder: {fileID: 5177748670604408609}
-  seekerModel: {fileID: 1119986346287998157}
-  interactionDistance: 10
-  interactableObjects:
-    serializedVersion: 2
-    m_Bits: 512
 --- !u!114 &2129284956287590308
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -131,6 +149,7 @@ MonoBehaviour:
   - {fileID: 959224129974555084}
   - {fileID: 3230246745650249074}
   - {fileID: 3230246745650249072}
+  - {fileID: 4727609327375919313}
   controller: {fileID: 7837650515227380864}
   seekerModel: {fileID: 1119986346287998157}
   fpModelLayer:

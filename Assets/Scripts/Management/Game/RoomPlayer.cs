@@ -1,7 +1,7 @@
 ﻿using Mirror;
 
+using Scripts.Components;
 using Scripts.Management.Network;
-using Scripts.PlayerScripts;
 
 using UnityEngine;
 
@@ -17,6 +17,14 @@ namespace Scripts.Management.Game
             base.OnClientEnterRoom();
 
             role = ServerManager.SingletonOverride.gameManager.AssignRole();
+
+            name = netId.ToString();
+
+            if (isLocalPlayer)
+                CmdSetName(name);
         }
+
+        [Command]
+        private void CmdSetName(string name) => gameObject.name = name;
     }
 }

@@ -1,11 +1,10 @@
-﻿using System.Collections;
-
-using Mirror;
+﻿using Mirror;
 
 using UnityEngine;
 
 namespace Scripts.PlayerScripts.Control
 {
+    [RequireComponent(typeof(CharacterController))]
     public sealed class PlayerController : MonoBehaviour
     {
         [SerializeField] private CharacterController controller;
@@ -39,7 +38,7 @@ namespace Scripts.PlayerScripts.Control
         [HideInInspector] public float speedMultiplier     = 1f;
         [HideInInspector] public float jumpForceMultiplier = 1f;
 
-        public bool CanMove { private get; set; }
+        public bool Freezed { get; set; }
 
         private bool jumpEnabled;
 
@@ -54,6 +53,8 @@ namespace Scripts.PlayerScripts.Control
         {
             animator.SetFloat(_horizontal, 0f);
             animator.SetFloat(_vertical, 0f);
+
+            Freezed = true;
 
             speed = jogSpeed;
 
@@ -70,7 +71,7 @@ namespace Scripts.PlayerScripts.Control
             //if (Cursor.lockState != CursorLockMode.Locked)
             //    Cursor.lockState = CursorLockMode.Locked;
 
-            if (!CanMove)
+            if (Freezed)
                 return;
 
             if (controller.isGrounded)
@@ -95,8 +96,6 @@ namespace Scripts.PlayerScripts.Control
             }
             else
                 velocity += Physics.gravity * Time.deltaTime;
-
-            // TODO: Because of this ^^^ player is floating slightly above ground and jumping when freeze time ends
         }
 
         private void FixedUpdate()
