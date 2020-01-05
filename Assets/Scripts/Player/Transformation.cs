@@ -1,4 +1,7 @@
-﻿using Mirror;
+﻿using System.Collections;
+using System.Collections.Generic;
+
+using Mirror;
 
 using Scripts.Components;
 using Scripts.Management.Network;
@@ -52,10 +55,7 @@ namespace Scripts.PlayerScripts
                 CmdTransform(controller.CurrentCamera.transform.position,
                              controller.CurrentCamera.transform.forward);
             else
-            {
-                freezed = !freezed;
                 CmdSetFreeze(freezed);
-            }
 
             holdingTime = 0f;
         }
@@ -92,11 +92,32 @@ namespace Scripts.PlayerScripts
         }
 
         [Command]
-        private void CmdSetFreeze(bool state) => RpcSetFreeze(state);
+        private void CmdSetFreeze(bool state) => StartCoroutine(DelayedFreeze(state));
+
+        private IEnumerator DelayedFreeze(bool state)
+        {
+            if (!state)
+                RpcSetFreeze(false);
+            else
+            {
+                float time = 0f;
+
+                while (time < freezingTime)
+                {
+                    yield return new WaitForFixedUpdate();
+
+                    time += Time.fixedDeltaTime;
+                }
+
+                RpcSetFreeze(true);
+            }
+        }
 
         [ClientRpc]
         private void RpcSetFreeze(bool state)
         {
+            freezed = state;
+
             controller.SetFreeze(state);
         }
     }
