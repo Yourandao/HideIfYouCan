@@ -1,5 +1,10 @@
-﻿using Scripts.Components;
-using Scripts.Exceptions;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+using Mirror;
+
+using Scripts.Components;
 using Scripts.Management.Network;
 
 using UnityEngine;
@@ -12,21 +17,23 @@ namespace Scripts.Management.Game
     {
         [SerializeField] private GameSettings gameSettings = new GameSettings();
 
+        [Attributes.Scene]
+        public string[] gameplayScenes;
+
         private GameState gameState;
 
-        private int hidersCount;
         private int seekersCount;
 
         private float time;
 
         private void Start()
         {
-            gameState = GameState.Starting;
+            gameState = GameState.Preparing;
         }
 
         private void FixedUpdate()
         {
-            if (gameState == GameState.Finished || gameState == GameState.Starting)
+            if (gameState == GameState.Finished || gameState == GameState.Preparing)
                 return;
 
             time += Time.fixedDeltaTime;
@@ -36,11 +43,15 @@ namespace Scripts.Management.Game
                 case GameState.FreezeTime:
                     if (time >= gameSettings.freezeTime)
                     {
-                        foreach (var player in ServerManager.GetAllPlayers())
+                        foreach (var player in ServerManager
+                                               .GetAllPlayers()
+                                               .Where(p => p.role == Role.Hider))
+                        {
                             player.RpcStartGame();
+                        }
 
                         gameState = GameState.HideTime;
-                        time      = 0f;
+                        time = 0f;
 
                         Debug.Log("Freeze time expired");
                     }
@@ -49,10 +60,15 @@ namespace Scripts.Management.Game
                 case GameState.HideTime:
                     if (time >= gameSettings.hideTime)
                     {
-                        // TODO: Enable seekers
+                        foreach (var player in ServerManager
+                                               .GetAllPlayers()
+                                               .Where(p => p.role == Role.Seeker))
+                        {
+                            player.RpcStartGame();
+                        }
 
                         gameState = GameState.SeekTime;
-                        time      = 0f;
+                        time = 0f;
 
                         Debug.Log("Time to hide has ended");
                     }
@@ -64,7 +80,7 @@ namespace Scripts.Management.Game
                         // TODO: E.g. show game summary
 
                         gameState = GameState.Ending;
-                        time      = 0f;
+                        time = 0f;
 
                         Debug.Log("Round ended");
                     }
@@ -73,55 +89,44 @@ namespace Scripts.Management.Game
                 case GameState.Ending:
                     if (time >= gameSettings.endingTime)
                     {
-                        // TODO: E.g switch map or close server
+                        int sceneIndex = Random.Range(0, gameplayScenes.Length);
 
-                        gameState = GameState.Finished;
+                        NetworkManager.singleton.ServerChangeScene(gameplayScenes[sceneIndex]);
+
+                        gameState = GameState.FreezeTime;
                     }
 
                     break;
             }
         }
 
-        public Role AssignRole()
+        private void AssignRoles(IReadOnlyCollection<RoomPlayer> players)
         {
-            if ((float) seekersCount / (hidersCount + 1) < gameSettings.seekersToHidersRelation)
+            var unassignedPlayers = new List<RoomPlayer>(players);
+
+            seekersCount = (int)Math.Round(players.Count * gameSettings.seekersToHidersRelation,
+                                            MidpointRounding.AwayFromZero);
+
+            for (int i = 0; i < seekersCount; i++)
             {
-                if (Random.value >= .5f)
-                {
-                    hidersCount++;
+                int index = Random.Range(0, unassignedPlayers.Count);
 
-                    return Role.Hider;
-                }
+                unassignedPlayers[index].Role = Role.Seeker;
 
-                seekersCount++;
-
-                return Role.Seeker;
+                unassignedPlayers.RemoveAt(index);
             }
 
-            hidersCount++;
-
-            return Role.Hider;
-        }
-
-        public void UnassignRole(Role role)
-        {
-            switch (role)
-            {
-                case Role.Hider:
-                    hidersCount--;
-
-                    break;
-                case Role.Seeker:
-                    seekersCount--;
-
-                    break;
-                default: throw new UnhandledRoleException(role);
-            }
+            foreach (var player in unassignedPlayers)
+                player.Role = Role.Hider;
         }
 
         public void StartGame()
         {
             gameState = GameState.FreezeTime;
+
+            AssignRoles(ServerManager.singleton.roomSlots
+                                     .Select(r => r.GetComponent<RoomPlayer>())
+                                     .ToArray());
 
             Debug.Log("Game started");
         }

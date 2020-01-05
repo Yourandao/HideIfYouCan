@@ -20,6 +20,8 @@ namespace Scripts.PlayerScripts.Control
 
         private bool isSetUp;
 
+        public bool freezeModelRotation;
+
         public void Setup(Transform player, Transform camera)
         {
             playerTransform = player;
@@ -43,7 +45,9 @@ namespace Scripts.PlayerScripts.Control
             xRotation =  Mathf.Clamp(xRotation, -90f, 90f);
 
             cameraTransform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
-            playerTransform.Rotate(Vector3.up * mouseX);
+
+            if (!freezeModelRotation)
+                playerTransform.Rotate(Vector3.up * mouseX);
         }
     }
 }

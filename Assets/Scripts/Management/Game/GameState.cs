@@ -2,7 +2,7 @@
 {
     public enum GameState
     {
-        Starting,
+        Preparing,
         FreezeTime,
         HideTime,
         SeekTime,

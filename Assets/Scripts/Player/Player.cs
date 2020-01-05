@@ -31,12 +31,21 @@ namespace Scripts.PlayerScripts
         {
             if (isLocalPlayer)
                 controller.Configure(true);
+
+            if (role != Role.Hider)
+                transformation.enabled = false;
         }
 
         [ClientRpc]
         public void RpcStartGame()
         {
-            controller.Freezed = false;
+            controller.freezed = false;
+        }
+
+        [ClientRpc]
+        public void RpcStopGame()
+        {
+            controller.stopped = true;
         }
     }
 }

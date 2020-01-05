@@ -47,11 +47,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameSettings:
-    freezeTime: 1
-    hideTime: 30
-    seekTime: 90
-    endingTime: 10
+    freezeTime: 10
+    hideTime: 60
+    seekTime: 300
+    endingTime: 30
     seekersToHidersRelation: 0.25
+  gameplayScenes:
+  - TestMap
 --- !u!114 &5605157856868512961
 MonoBehaviour:
   m_ObjectHideFlags: 0
