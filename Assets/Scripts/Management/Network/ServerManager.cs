@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 using Mirror;
 
@@ -13,10 +14,9 @@ namespace Scripts.Management.Network
 {
     public sealed class ServerManager : NetworkRoomManager
     {
-        public static ServerManager SingletonOverride { get; private set; }
+        public new static ServerManager singleton;
 
-        [Header("Control Components")]
-        public GameManager gameManager = default;
+        public GameManager gameManager;
 
         private static Dictionary<uint, Player> _players = new Dictionary<uint, Player>();
 
@@ -28,10 +28,10 @@ namespace Scripts.Management.Network
         {
             base.Awake();
 
-            if (SingletonOverride != null)
+            if (singleton != null)
                 throw new MultiInstanceException(gameObject);
 
-            SingletonOverride = this;
+            singleton = this;
 
             #if UNITY_SERVER
             if (isServerStarted)
@@ -51,35 +51,32 @@ namespace Scripts.Management.Network
             _players.Clear();
         }
 
+        public override void OnRoomServerPlayersReady()
+        {
+            int sceneIndex = Random.Range(0, gameManager.gameplayScenes.Length);
+
+            ServerChangeScene(gameManager.gameplayScenes[sceneIndex]);
+        }
+
         public override bool OnRoomServerSceneLoadedForPlayer(GameObject roomPlayer, GameObject gamePlayer)
         {
-            var role = roomPlayer.GetComponent<RoomPlayer>().role;
-
-            gamePlayer.GetComponent<Player>().role = role;
+            gamePlayer.GetComponent<Player>().role = roomPlayer.GetComponent<RoomPlayer>().Role;
 
             return true;
         }
 
-        public override void OnRoomServerPlayersReady()
+        public override void OnRoomServerSceneChanged(string sceneName)
         {
-            base.OnRoomServerPlayersReady();
+            base.OnRoomServerSceneChanged(sceneName);
 
             gameManager.StartGame();
         }
 
         #region Player management
 
-        public static void RegisterPlayer(uint id, Player player)
-        {
-            _players.Add(id, player);
-        }
+        public static void RegisterPlayer(uint id, Player player) => _players.Add(id, player);
 
-        public static void UnregisterPlayer(uint id, Role role)
-        {
-            _players.Remove(id);
-
-            SingletonOverride.gameManager.UnassignRole(role);
-        }
+        public static void UnregisterPlayer(uint id, Role role) => _players.Remove(id);
 
         public static Player GetPlayer(uint id) => _players[id];
 

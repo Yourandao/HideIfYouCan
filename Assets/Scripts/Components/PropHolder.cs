@@ -2,7 +2,7 @@
 
 namespace Scripts.Components
 {
-    public sealed class PropController : MonoBehaviour
+    public sealed class PropHolder : MonoBehaviour
     {
         public Prop prop;
 

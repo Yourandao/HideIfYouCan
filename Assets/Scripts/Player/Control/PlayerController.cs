@@ -38,7 +38,8 @@ namespace Scripts.PlayerScripts.Control
         [HideInInspector] public float speedMultiplier     = 1f;
         [HideInInspector] public float jumpForceMultiplier = 1f;
 
-        public bool Freezed { get; set; }
+        public bool freezed;
+        public bool stopped;
 
         private bool jumpEnabled;
 
@@ -54,7 +55,7 @@ namespace Scripts.PlayerScripts.Control
             animator.SetFloat(_horizontal, 0f);
             animator.SetFloat(_vertical, 0f);
 
-            Freezed = true;
+            freezed = true;
 
             speed = jogSpeed;
 
@@ -66,12 +67,15 @@ namespace Scripts.PlayerScripts.Control
 
         private void Update()
         {
-            mouseLook.InputRotation();
+            if (stopped)
+                return;
 
             //if (Cursor.lockState != CursorLockMode.Locked)
             //    Cursor.lockState = CursorLockMode.Locked;
 
-            if (Freezed)
+            mouseLook.InputRotation();
+
+            if (freezed)
                 return;
 
             if (controller.isGrounded)
@@ -150,6 +154,12 @@ namespace Scripts.PlayerScripts.Control
             CurrentCamera = cameraObject.GetComponent<Camera>();
 
             mouseLook.Setup(transform, CurrentCamera.transform);
+        }
+
+        public void SetFreeze(bool state)
+        {
+            freezed                       = state;
+            mouseLook.freezeModelRotation = state;
         }
     }
 }

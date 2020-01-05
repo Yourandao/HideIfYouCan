@@ -18,6 +18,10 @@ namespace Scripts.PlayerScripts
         [Header("Settings")]
         [SerializeField] private float interactionDistance = 5f;
 
+        [SerializeField] private float holdToFreeze = 2f;
+
+        [SerializeField] private float freezingTime = 3f;
+
         [SerializeField] private LayerMask interactableObjects;
 
         private GameObject modelInstance;
@@ -29,13 +33,31 @@ namespace Scripts.PlayerScripts
 
         private Prop prop;
 
+        private float holdingTime;
+
+        private bool freezed;
+
         private void Update()
         {
-            if (controller.Freezed)
+            if (controller.freezed)
                 return;
 
-            if (Input.GetButtonDown("Interact") && player.role == Role.Hider)
-                CmdTransform(controller.CurrentCamera.transform.position, controller.CurrentCamera.transform.forward);
+            if (Input.GetButton("Interact") && !freezed)
+                holdingTime += Time.deltaTime;
+
+            if (!Input.GetButtonUp("Interact"))
+                return;
+
+            if (holdingTime < holdToFreeze)
+                CmdTransform(controller.CurrentCamera.transform.position,
+                             controller.CurrentCamera.transform.forward);
+            else
+            {
+                freezed = !freezed;
+                CmdSetFreeze(freezed);
+            }
+
+            holdingTime = 0f;
         }
 
         [Command]
@@ -51,7 +73,9 @@ namespace Scripts.PlayerScripts
             Physics.Raycast(from, direction, out var hit,
                             interactionDistance, interactableObjects);
 
-            prop = hit.collider.GetComponent<PropController>().prop;
+            Utility.SetLayerRecursively(hit.collider.gameObject, 0);
+
+            prop = hit.collider.GetComponent<PropHolder>().prop;
 
             seekerModel.SetActive(false);
 
@@ -65,6 +89,15 @@ namespace Scripts.PlayerScripts
             controller.Configure(false);
             controller.speedMultiplier     = prop.speedMultiplier;
             controller.jumpForceMultiplier = prop.jumpForceMultiplier;
+        }
+
+        [Command]
+        private void CmdSetFreeze(bool state) => RpcSetFreeze(state);
+
+        [ClientRpc]
+        private void RpcSetFreeze(bool state)
+        {
+            controller.SetFreeze(state);
         }
     }
 }

@@ -517,9 +517,9 @@ namespace Mirror
         /// This allows customization of the creation of the GamePlayer object on the server.
         /// <para>By default the gamePlayerPrefab is used to create the game-player, but this function allows that behaviour to be customized. The object returned from the function will be used to replace the room-player on the connection.</para>
         /// </summary>
-        /// <param name="conn">The connection the player object is for.</param>
+        /// <param name="connection">The connection the player object is for.</param>
         /// <returns>A new GamePlayer object.</returns>
-        public virtual GameObject OnRoomServerCreateGamePlayer(NetworkConnection conn)
+        public virtual GameObject OnRoomServerCreateGamePlayer(NetworkConnection connection)
         {
             return null;
         }
@@ -587,8 +587,8 @@ namespace Mirror
         /// <summary>
         /// This is called on the client when the client is finished loading a new networked scene.
         /// </summary>
-        /// <param name="conn">The connection that finished loading a new networked scene.</param>
-        public virtual void OnRoomClientSceneChanged(NetworkConnection conn) { }
+        /// <param name="connection">The connection that finished loading a new networked scene.</param>
+        public virtual void OnRoomClientSceneChanged(NetworkConnection connection) { }
 
         /// <summary>
         /// Called on the client when adding a player to the room fails.
