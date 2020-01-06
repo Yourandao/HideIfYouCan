@@ -27,14 +27,14 @@ namespace Scripts.Management.Game
 
         private float time;
 
-        private void Start()
+        private void Awake()
         {
             gameState = GameState.NotStarted;
         }
 
         private void FixedUpdate()
         {
-            if (gameState == GameState.Finished || gameState == GameState.Waiting)
+            if (gameState == GameState.Finished || gameState == GameState.NotStarted)
                 return;
 
             time += Time.fixedDeltaTime;
@@ -48,7 +48,7 @@ namespace Scripts.Management.Game
                         gameState = GameState.FreezeTime;
                         time      = 0f;
 
-                        Debug.Log("Waiting ended");
+                        Debug.Log("Game started");
                     }
 
                     break;
@@ -137,11 +137,11 @@ namespace Scripts.Management.Game
         {
             gameState = GameState.Waiting;
 
-            AssignRoles(ServerManager.singleton.roomSlots
+            AssignRoles(ServerManager.Singleton.roomSlots
                                      .Select(r => r.GetComponent<RoomPlayer>())
                                      .ToArray());
 
-            Debug.Log("Game started");
+            Debug.Log("Waiting phase");
         }
     }
 }
