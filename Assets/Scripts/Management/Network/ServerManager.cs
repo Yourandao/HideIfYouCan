@@ -20,7 +20,14 @@ namespace Scripts.Management.Network
 
         private static Dictionary<uint, Player> _players = new Dictionary<uint, Player>();
 
-        #if UNITY_SERVER
+        public static int AllPlayers
+        {
+            get => _players.Count;
+        }
+
+        public static int LoadedPlayers { get; private set; }
+
+        #if UNITY_SERVERD
         private bool isServerStarted;
         #endif
 
@@ -69,7 +76,16 @@ namespace Scripts.Management.Network
         {
             base.OnRoomServerSceneChanged(sceneName);
 
+            LoadedPlayers = 0;
+
             gameManager.StartGame();
+        }
+
+        public override void OnRoomClientSceneChanged(NetworkConnection connection)
+        {
+            base.OnRoomClientSceneChanged(connection);
+
+            LoadedPlayers++;
         }
 
         #region Player management
