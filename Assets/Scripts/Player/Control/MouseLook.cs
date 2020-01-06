@@ -10,6 +10,9 @@ namespace Scripts.PlayerScripts.Control
         [SerializeField] private float xSensitivity = 2.5f;
         [SerializeField] private float ySensitivity = 2.5f;
 
+        [SerializeField] private float maximumX = 90f;
+        [SerializeField] private float minimumX = -90f;
+
         private Transform playerTransform;
         private Transform cameraTransform;
 
@@ -42,7 +45,7 @@ namespace Scripts.PlayerScripts.Control
                 return;
 
             xRotation -= mouseY;
-            xRotation =  Mathf.Clamp(xRotation, -90f, 90f);
+            xRotation =  Mathf.Clamp(xRotation, minimumX, maximumX);
 
             cameraTransform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
 
