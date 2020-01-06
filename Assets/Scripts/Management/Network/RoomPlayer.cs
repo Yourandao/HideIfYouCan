@@ -2,7 +2,7 @@
 
 using Scripts.Components;
 
-namespace Scripts.Management.Game
+namespace Scripts.Management.Network
 {
     public sealed class RoomPlayer : NetworkRoomPlayer
     {

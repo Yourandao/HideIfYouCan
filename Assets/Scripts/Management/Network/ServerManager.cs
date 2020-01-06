@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 using Mirror;
 
@@ -10,17 +9,33 @@ using Scripts.PlayerScripts;
 
 using UnityEngine;
 
+using Random = UnityEngine.Random;
+
 namespace Scripts.Management.Network
 {
+    [RequireComponent(typeof(GameManager))]
     public sealed class ServerManager : NetworkRoomManager
     {
-        public new static ServerManager singleton;
+        public static ServerManager Singleton { get; private set; }
 
-        public GameManager gameManager;
+        [SerializeField] private GameManager gameManager;
+
+        private static List<Transform> _hiderSpawns  = new List<Transform>();
+        private static List<Transform> _seekerSpawns = new List<Transform>();
+
+        private static int _hiderSpawnsIndex;
+        private static int _seekerSpawnsIndex;
 
         private static Dictionary<uint, Player> _players = new Dictionary<uint, Player>();
 
-        #if UNITY_SERVER
+        public static int AllPlayers
+        {
+            get => _players.Count;
+        }
+
+        public static int LoadedPlayers { get; private set; }
+
+        #if UNITY_SERVERD
         private bool isServerStarted;
         #endif
 
@@ -28,10 +43,10 @@ namespace Scripts.Management.Network
         {
             base.Awake();
 
-            if (singleton != null)
+            if (Singleton != null)
                 throw new MultiInstanceException(gameObject);
 
-            singleton = this;
+            Singleton = this;
 
             #if UNITY_SERVER
             if (isServerStarted)
@@ -56,11 +71,23 @@ namespace Scripts.Management.Network
             int sceneIndex = Random.Range(0, gameManager.gameplayScenes.Length);
 
             ServerChangeScene(gameManager.gameplayScenes[sceneIndex]);
+
+            gameManager.StartGame();
         }
 
         public override bool OnRoomServerSceneLoadedForPlayer(GameObject roomPlayer, GameObject gamePlayer)
         {
-            gamePlayer.GetComponent<Player>().role = roomPlayer.GetComponent<RoomPlayer>().Role;
+            var role = roomPlayer.GetComponent<RoomPlayer>().Role;
+
+            gamePlayer.GetComponent<Player>().role = role;
+
+            if (role != Role.Hider && role != Role.Seeker)
+                throw new UnhandledRoleException(role);
+
+            var spawn = GetSpawn(role);
+
+            gamePlayer.transform.position = spawn.position;
+            gamePlayer.transform.rotation = spawn.rotation;
 
             return true;
         }
@@ -69,8 +96,54 @@ namespace Scripts.Management.Network
         {
             base.OnRoomServerSceneChanged(sceneName);
 
-            gameManager.StartGame();
+            LoadedPlayers = 0;
         }
+
+        public override void OnRoomClientSceneChanged(NetworkConnection connection)
+        {
+            base.OnRoomClientSceneChanged(connection);
+
+            LoadedPlayers++;
+        }
+
+        #region Spawns management
+
+        public static void RegisterHiderSpawn(Transform transform) => _hiderSpawns.Add(transform);
+
+        public static void RegisterSeekerSpawn(Transform transform) => _seekerSpawns.Add(transform);
+
+        public static void UnregisterHiderSpawn(Transform transform) => _hiderSpawns.Remove(transform);
+
+        public static void UnregisterSeekerSpawn(Transform transform) => _seekerSpawns.Remove(transform);
+
+        private Transform GetSpawn(Role role)
+        {
+            int @default = default;
+
+            List<Transform> spawns;
+            ref int         index = ref @default;
+
+            if (role == Role.Hider)
+            {
+                spawns = _hiderSpawns;
+                index  = ref _hiderSpawnsIndex;
+            }
+            else
+            {
+                spawns = _seekerSpawns;
+                index  = ref _seekerSpawnsIndex;
+            }
+
+            if (playerSpawnMethod == PlayerSpawnMethod.Random)
+                return spawns[Random.Range(0, spawns.Count)];
+
+            var spawn = spawns[index];
+            index = (index + 1) % spawns.Count;
+
+            return spawn;
+        }
+
+        #endregion
 
         #region Player management
 

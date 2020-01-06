@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Mirror;
+using Mirror.Websocket;
 
 using Scripts.Components;
 using Scripts.Management.Network;
@@ -26,20 +27,32 @@ namespace Scripts.Management.Game
 
         private float time;
 
-        private void Start()
+        private void Awake()
         {
-            gameState = GameState.Preparing;
+            gameState = GameState.NotStarted;
         }
 
         private void FixedUpdate()
         {
-            if (gameState == GameState.Finished || gameState == GameState.Preparing)
+            if (gameState == GameState.Finished || gameState == GameState.NotStarted)
                 return;
 
             time += Time.fixedDeltaTime;
 
             switch (gameState)
             {
+                case GameState.Waiting:
+                    if (ServerManager.LoadedPlayers == ServerManager.AllPlayers ||
+                        time >= gameSettings.maxWaitingTime)
+                    {
+                        gameState = GameState.FreezeTime;
+                        time      = 0f;
+
+                        Debug.Log("Game started");
+                    }
+
+                    break;
+
                 case GameState.FreezeTime:
                     if (time >= gameSettings.freezeTime)
                     {
@@ -51,7 +64,7 @@ namespace Scripts.Management.Game
                         }
 
                         gameState = GameState.HideTime;
-                        time = 0f;
+                        time      = 0f;
 
                         Debug.Log("Freeze time expired");
                     }
@@ -68,7 +81,7 @@ namespace Scripts.Management.Game
                         }
 
                         gameState = GameState.SeekTime;
-                        time = 0f;
+                        time      = 0f;
 
                         Debug.Log("Time to hide has ended");
                     }
@@ -80,7 +93,7 @@ namespace Scripts.Management.Game
                         // TODO: E.g. show game summary
 
                         gameState = GameState.Ending;
-                        time = 0f;
+                        time      = 0f;
 
                         Debug.Log("Round ended");
                     }
@@ -104,7 +117,7 @@ namespace Scripts.Management.Game
         {
             var unassignedPlayers = new List<RoomPlayer>(players);
 
-            seekersCount = (int)Math.Round(players.Count * gameSettings.seekersToHidersRelation,
+            seekersCount = (int) Math.Round(players.Count * gameSettings.seekersToHidersRelation,
                                             MidpointRounding.AwayFromZero);
 
             for (int i = 0; i < seekersCount; i++)
@@ -122,13 +135,13 @@ namespace Scripts.Management.Game
 
         public void StartGame()
         {
-            gameState = GameState.FreezeTime;
+            gameState = GameState.Waiting;
 
-            AssignRoles(ServerManager.singleton.roomSlots
+            AssignRoles(ServerManager.Singleton.roomSlots
                                      .Select(r => r.GetComponent<RoomPlayer>())
                                      .ToArray());
 
-            Debug.Log("Game started");
+            Debug.Log("Waiting phase");
         }
     }
 }
