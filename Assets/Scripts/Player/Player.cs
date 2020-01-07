@@ -11,7 +11,8 @@ namespace Scripts.PlayerScripts
     [RequireComponent(typeof(Transformation))]
     public sealed class Player : NetworkBehaviour
     {
-        [SerializeField] private PlayerController controller;
+        [Header("Components")]
+        public PlayerController controller;
 
         public Transformation transformation;
 

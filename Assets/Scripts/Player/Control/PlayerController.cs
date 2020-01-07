@@ -12,6 +12,7 @@ namespace Scripts.PlayerScripts.Control
         [SerializeField] private Animator        animator;
         [SerializeField] private NetworkAnimator networkAnimator;
 
+        private static readonly int _moving     = Animator.StringToHash("Moving");
         private static readonly int _horizontal = Animator.StringToHash("Horizontal");
         private static readonly int _vertical   = Animator.StringToHash("Vertical");
         private static readonly int _isRunning  = Animator.StringToHash("IsRunning");
@@ -24,7 +25,7 @@ namespace Scripts.PlayerScripts.Control
         [SerializeField] private GameObject thirdPersonCameraPrefab;
         private                  GameObject thirdPersonCameraInstance;
 
-        public Camera CurrentCamera { get; private set; }
+        public Transform CurrentCameraTransform { get; private set; }
 
         [Header("Movement")]
         [SerializeField] private MouseLook mouseLook = new MouseLook();
@@ -117,6 +118,8 @@ namespace Scripts.PlayerScripts.Control
 
             controller.Move(velocity * Time.fixedDeltaTime);
 
+            animator.SetBool(_moving, desiredVelocity != Vector3.zero);
+
             animator.SetFloat(_horizontal, localVelocity.x);
             animator.SetFloat(_vertical, localVelocity.z);
         }
@@ -150,10 +153,9 @@ namespace Scripts.PlayerScripts.Control
                 jumpEnabled = true;
             }
 
-            var cameraObject = firstPerson ? firstPersonCamera : thirdPersonCameraInstance;
-            CurrentCamera = cameraObject.GetComponent<Camera>();
+            CurrentCameraTransform = firstPerson ? firstPersonCamera.transform : thirdPersonCameraInstance.transform;
 
-            mouseLook.Setup(transform, CurrentCamera.transform);
+            mouseLook.Setup(transform, CurrentCameraTransform.transform);
         }
 
         public void SetFreeze(bool state)
