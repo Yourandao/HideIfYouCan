@@ -90,7 +90,8 @@ namespace Scripts.Management.Game
                 case GameState.SeekTime:
                     if (time >= gameSettings.seekTime)
                     {
-                        // TODO: E.g. show game summary
+                        foreach (var player in ServerManager.GetAllPlayers())
+                            player.RpcStopGame();
 
                         gameState = GameState.Ending;
                         time      = 0f;

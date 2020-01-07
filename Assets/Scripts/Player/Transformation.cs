@@ -45,22 +45,23 @@ namespace Scripts.PlayerScripts
 
         private void Update()
         {
-            if (controller.freezed)
-                return;
-
-            if (Input.GetButton("Interact") && !freezed)
+            if (Input.GetButton("Interact"))
                 holdingTime += Time.deltaTime;
 
-            if (!Input.GetButtonUp("Interact"))
-                return;
+            if (holdingTime >= holdToFreeze && prop != null)
+            {
+                CmdSetFreeze(!freezed);
 
-            if (holdingTime < holdToFreeze)
-                CmdTransform(controller.CurrentCameraTransform.position,
-                             controller.CurrentCameraTransform.forward);
-            else
-                CmdSetFreeze(freezed);
+                holdingTime = 0f;
+            }
+            else if (Input.GetButtonUp("Interact"))
+            {
+                holdingTime = 0f;
 
-            holdingTime = 0f;
+                if (!freezed)
+                    CmdTransform(controller.firstPersonCamera.position,
+                                 controller.firstPersonCamera.forward);
+            }
         }
 
         [Command]
@@ -89,7 +90,7 @@ namespace Scripts.PlayerScripts
             if (!isLocalPlayer)
                 return;
 
-            controller.Configure(false);
+            controller.SwitchToTPP(modelInstance.transform);
             controller.speedMultiplier     = prop.speedMultiplier;
             controller.jumpForceMultiplier = prop.jumpForceMultiplier;
         }

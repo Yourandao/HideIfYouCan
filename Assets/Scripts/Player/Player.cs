@@ -30,9 +30,6 @@ namespace Scripts.PlayerScripts
         [ClientRpc]
         private void RpcSetup()
         {
-            if (isLocalPlayer)
-                controller.Configure(true);
-
             if (role != Role.Hider)
                 transformation.enabled = false;
         }
