@@ -25,7 +25,7 @@ namespace Scripts.Management.Game
 
         private int seekersCount;
 
-        private float time;
+        public static float time { get; private set; }
 
         private void Awake()
         {
