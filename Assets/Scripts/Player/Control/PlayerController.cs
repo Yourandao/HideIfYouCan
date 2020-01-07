@@ -25,7 +25,7 @@ namespace Scripts.PlayerScripts.Control
         [SerializeField] private GameObject thirdPersonCameraPrefab;
         private                  GameObject thirdPersonCameraInstance;
 
-        public Camera CurrentCamera { get; private set; }
+        public Transform CurrentCameraTransform { get; private set; }
 
         [Header("Movement")]
         [SerializeField] private MouseLook mouseLook = new MouseLook();
@@ -153,10 +153,9 @@ namespace Scripts.PlayerScripts.Control
                 jumpEnabled = true;
             }
 
-            var cameraObject = firstPerson ? firstPersonCamera : thirdPersonCameraInstance;
-            CurrentCamera = cameraObject.GetComponent<Camera>();
+            CurrentCameraTransform = firstPerson ? firstPersonCamera.transform : thirdPersonCameraInstance.transform;
 
-            mouseLook.Setup(transform, CurrentCamera.transform);
+            mouseLook.Setup(transform, CurrentCameraTransform.transform);
         }
 
         public void SetFreeze(bool state)
