@@ -12,6 +12,7 @@ namespace Scripts.PlayerScripts.Control
         [SerializeField] private Animator        animator;
         [SerializeField] private NetworkAnimator networkAnimator;
 
+        private static readonly int _moving     = Animator.StringToHash("Moving");
         private static readonly int _horizontal = Animator.StringToHash("Horizontal");
         private static readonly int _vertical   = Animator.StringToHash("Vertical");
         private static readonly int _isRunning  = Animator.StringToHash("IsRunning");
@@ -116,6 +117,8 @@ namespace Scripts.PlayerScripts.Control
             localVelocity = Vector3.Lerp(localVelocity, input, smoothFactor);
 
             controller.Move(velocity * Time.fixedDeltaTime);
+
+            animator.SetBool(_moving, desiredVelocity != Vector3.zero);
 
             animator.SetFloat(_horizontal, localVelocity.x);
             animator.SetFloat(_vertical, localVelocity.z);
