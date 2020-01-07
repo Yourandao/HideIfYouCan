@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 
 using Mirror;
 
@@ -13,10 +12,9 @@ namespace Scripts.PlayerScripts
 {
     public sealed class Transformation : NetworkBehaviour
     {
-        [Header("Components")]
         [SerializeField] private Player player;
 
-        [SerializeField] private PlayerController controller;
+        private PlayerController controller;
 
         [Header("Settings")]
         [SerializeField] private float interactionDistance = 5f;
@@ -40,6 +38,11 @@ namespace Scripts.PlayerScripts
 
         private bool freezed;
 
+        private void Start()
+        {
+            controller = player.controller;
+        }
+
         private void Update()
         {
             if (controller.freezed)
@@ -52,8 +55,8 @@ namespace Scripts.PlayerScripts
                 return;
 
             if (holdingTime < holdToFreeze)
-                CmdTransform(controller.CurrentCamera.transform.position,
-                             controller.CurrentCamera.transform.forward);
+                CmdTransform(controller.CurrentCameraTransform.position,
+                             controller.CurrentCameraTransform.forward);
             else
                 CmdSetFreeze(freezed);
 
