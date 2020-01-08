@@ -18,7 +18,7 @@ namespace Scripts.Management.Network
     {
         public static ServerManager Singleton { get; private set; }
 
-        [SerializeField] private GameManager gameManager;
+        public GameManager gameManager;
 
         private static List<Transform> _hiderSpawns  = new List<Transform>();
         private static List<Transform> _seekerSpawns = new List<Transform>();

@@ -39,8 +39,8 @@ namespace Scripts.PlayerScripts.Control
         [HideInInspector] public float speedMultiplier     = 1f;
         [HideInInspector] public float jumpForceMultiplier = 1f;
 
-        public bool freezed;
-        public bool stopped;
+        [HideInInspector] public bool freezed;
+        private                  bool stopped;
 
         private bool jumpEnabled;
 
@@ -74,8 +74,8 @@ namespace Scripts.PlayerScripts.Control
             if (stopped)
                 return;
 
-            //if (Cursor.lockState != CursorLockMode.Locked)
-            //    Cursor.lockState = CursorLockMode.Locked;
+            if (Cursor.lockState != CursorLockMode.Locked)
+                Cursor.lockState = CursorLockMode.Locked;
 
             mouseLook.InputRotation();
 
@@ -103,7 +103,7 @@ namespace Scripts.PlayerScripts.Control
                     velocity.y = jumpForce * jumpForceMultiplier;
             }
             else
-                velocity += Physics.gravity * gravityMultiplier * Time.deltaTime;
+                velocity += Physics.gravity * (gravityMultiplier * Time.deltaTime);
         }
 
         private void FixedUpdate()
@@ -112,7 +112,7 @@ namespace Scripts.PlayerScripts.Control
                                   transform.forward * input.z;
 
             velocity = Vector3.Lerp(velocity,
-                                    desiredVelocity * speed * speedMultiplier,
+                                    desiredVelocity * (speed * speedMultiplier),
                                     smoothFactor);
 
             localVelocity = Vector3.Lerp(localVelocity, input, smoothFactor);
@@ -168,12 +168,21 @@ namespace Scripts.PlayerScripts.Control
             mouseLook.SwitchToTPP(thirdPersonCameraInstance.transform, cameraTargetInstance.transform);
         }
 
-        public void SetFreeze(bool state)
+        public void SetPropFreeze(bool state)
         {
             freezed                       = state;
             mouseLook.freezeModelRotation = state;
 
-            input = Vector3.zero;
+            if (state)
+                input = Vector3.zero;
+        }
+
+        public void SetStop(bool state)
+        {
+            stopped = state;
+
+            if (state)
+                input = Vector3.zero;
         }
     }
 }

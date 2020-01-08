@@ -30,7 +30,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 7058570167131921989}
-  m_RootOrder: 0
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -76,7 +76,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Status
+  m_Text: <role>
 --- !u!1 &7058570165952612511
 GameObject:
   m_ObjectHideFlags: 0
@@ -236,7 +236,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 7058570167131921989}
-  m_RootOrder: 4
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -424,9 +424,9 @@ MonoBehaviour:
   m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 1600, y: 900}
+  m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
-  m_MatchWidthOrHeight: 0
+  m_MatchWidthOrHeight: 0.5
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
@@ -460,16 +460,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03aa1c78bd26a3744894e40b8974a5d6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  gameUI: {fileID: 7058570167131921988}
+  pauseUI: {fileID: 7058570167394294831}
+  _buttonAudioSource: {fileID: 7058570166395294059}
   _buttonSound: {fileID: 8300000, guid: bb3fafcaadc3924489ca51dd9d2d0349, type: 3}
-  _resumeButton: {fileID: 7058570167837252488}
-  _quitButton: {fileID: 7058570165952612509}
-  _mainUI: {fileID: 7058570167131921988}
-  _pauseUI: {fileID: 7058570167394294831}
-  role: {fileID: 7058570165909083931}
-  seekersCount: {fileID: 7058570166578294839}
-  hidersCount: {fileID: 7058570167800037347}
-  spectatorsCount: {fileID: 7058570167541745729}
-  time: {fileID: 7058570168014265072}
+  resumeButton: {fileID: 7058570167837252488}
+  quitButton: {fileID: 7058570165952612509}
+  timeText: {fileID: 7058570168014265072}
+  roleText: {fileID: 7058570165909083931}
+  seekersText: {fileID: 7058570166578294839}
+  hidersText: {fileID: 7058570167800037347}
+  spectatorsText: {fileID: 7058570167541745729}
+  player: {fileID: 0}
 --- !u!82 &7058570166395294059
 AudioSource:
   m_ObjectHideFlags: 0
@@ -481,7 +483,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
   Loop: 0
@@ -578,7 +580,7 @@ GameObject:
   - component: {fileID: 7058570166578294836}
   - component: {fileID: 7058570166578294839}
   m_Layer: 5
-  m_Name: SeekersCount
+  m_Name: Seekers
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -596,7 +598,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 7058570167131921989}
-  m_RootOrder: 1
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -642,7 +644,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Seekers
+  m_Text: 'Seekers: <count>'
 --- !u!1 &7058570167060532578
 GameObject:
   m_ObjectHideFlags: 0
@@ -732,7 +734,7 @@ GameObject:
   - component: {fileID: 7058570167131921987}
   - component: {fileID: 7058570167131921986}
   m_Layer: 5
-  m_Name: Main
+  m_Name: GameUI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -749,12 +751,12 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
+  - {fileID: 7058570166056053211}
+  - {fileID: 7058570168014265074}
   - {fileID: 7058570165909083933}
   - {fileID: 7058570166578294841}
   - {fileID: 7058570167800037349}
   - {fileID: 7058570167541745731}
-  - {fileID: 7058570166056053211}
-  - {fileID: 7058570168014265074}
   m_Father: {fileID: 7058570166395294061}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -811,7 +813,7 @@ GameObject:
   - component: {fileID: 7058570167394294826}
   - component: {fileID: 7058570167394294829}
   m_Layer: 5
-  m_Name: Menu
+  m_Name: PauseUI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -886,7 +888,7 @@ GameObject:
   - component: {fileID: 7058570167541745854}
   - component: {fileID: 7058570167541745729}
   m_Layer: 5
-  m_Name: SpectatorsCount
+  m_Name: Spectators
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -904,7 +906,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 7058570167131921989}
-  m_RootOrder: 3
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -950,7 +952,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Spectators
+  m_Text: 'Spectators: <count>'
 --- !u!1 &7058570167643625300
 GameObject:
   m_ObjectHideFlags: 0
@@ -1042,7 +1044,7 @@ GameObject:
   - component: {fileID: 7058570167800037344}
   - component: {fileID: 7058570167800037347}
   m_Layer: 5
-  m_Name: HidersCount
+  m_Name: Hiders
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1060,7 +1062,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 7058570167131921989}
-  m_RootOrder: 2
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -1106,7 +1108,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Hiders
+  m_Text: 'Hiders: <count>'
 --- !u!1 &7058570167837252490
 GameObject:
   m_ObjectHideFlags: 0
@@ -1226,7 +1228,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 7058570166395294058}
-        m_MethodName: Resume
+        m_MethodName: TogglePause
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1266,7 +1268,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 7058570167131921989}
-  m_RootOrder: 5
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -1312,4 +1314,4 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Time
+  m_Text: <time>
