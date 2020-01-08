@@ -18,21 +18,21 @@ namespace Scripts.PlayerScripts.Control
         private static readonly int _isRunning  = Animator.StringToHash("IsRunning");
 
         [Header("Cameras")]
-        [SerializeField] private GameObject firstPersonCamera;
-
-        [SerializeField] private GameObject thirdPersonCameraController;
+        public Transform firstPersonCamera;
 
         [SerializeField] private GameObject thirdPersonCameraPrefab;
-        private                  GameObject thirdPersonCameraInstance;
+        [SerializeField] private Vector3    thirdPersonCameraOffset;
 
-        public Transform CurrentCameraTransform { get; private set; }
+        private GameObject cameraTargetInstance;
+        private GameObject thirdPersonCameraInstance;
 
         [Header("Movement")]
         [SerializeField] private MouseLook mouseLook = new MouseLook();
 
-        [SerializeField] private float jogSpeed  = 2.5f;
-        [SerializeField] private float runSpeed  = 5f;
-        [SerializeField] private float jumpForce = 5f;
+        [SerializeField] private float jogSpeed          = 2.5f;
+        [SerializeField] private float runSpeed          = 5f;
+        [SerializeField] private float jumpForce         = 10f;
+        [SerializeField] private float gravityMultiplier = 2.5f;
 
         [SerializeField] [Range(0f, 1f)] private float smoothFactor = .25f;
 
@@ -53,6 +53,9 @@ namespace Scripts.PlayerScripts.Control
 
         private void Start()
         {
+            mouseLook.Setup(transform, firstPersonCamera);
+            SwitchToFPP();
+
             animator.SetFloat(_horizontal, 0f);
             animator.SetFloat(_vertical, 0f);
 
@@ -100,13 +103,11 @@ namespace Scripts.PlayerScripts.Control
                     velocity.y = jumpForce * jumpForceMultiplier;
             }
             else
-                velocity += Physics.gravity * Time.deltaTime;
+                velocity += Physics.gravity * gravityMultiplier * Time.deltaTime;
         }
 
         private void FixedUpdate()
         {
-            mouseLook.Rotate();
-
             var desiredVelocity = transform.right * input.x +
                                   transform.forward * input.z;
 
@@ -124,44 +125,55 @@ namespace Scripts.PlayerScripts.Control
             animator.SetFloat(_vertical, localVelocity.z);
         }
 
-        public void Configure(bool firstPerson)
+        private void LateUpdate()
         {
+            mouseLook.Rotate();
+        }
+
+        public void SwitchToFPP()
+        {
+            firstPersonCamera.gameObject.SetActive(true);
+            thirdPersonCameraPrefab.gameObject.SetActive(false);
+
+            networkAnimator.enabled = true;
+            animator.enabled        = true;
+
+            jumpEnabled = false;
+
             Destroy(thirdPersonCameraInstance);
 
-            firstPersonCamera.SetActive(false);
-            thirdPersonCameraController.SetActive(false);
+            mouseLook.SwitchToFPP();
+        }
+
+        public void SwitchToTPP(Transform model)
+        {
+            firstPersonCamera.gameObject.SetActive(false);
+            thirdPersonCameraPrefab.gameObject.SetActive(true);
 
             networkAnimator.enabled = false;
             animator.enabled        = false;
 
-            jumpEnabled = false;
+            jumpEnabled = true;
 
-            if (firstPerson)
-            {
-                firstPersonCamera.SetActive(true);
+            cameraTargetInstance = new GameObject("CameraTarget");
+            cameraTargetInstance.transform.SetParent(model);
+            cameraTargetInstance.transform.SetPositionAndRotation(model.position, model.rotation);
 
-                networkAnimator.enabled = true;
-                animator.enabled        = true;
-            }
-            else
-            {
-                thirdPersonCameraInstance      = Instantiate(thirdPersonCameraPrefab);
-                thirdPersonCameraInstance.name = thirdPersonCameraPrefab.name;
+            thirdPersonCameraInstance =
+                Instantiate(thirdPersonCameraPrefab, cameraTargetInstance.transform);
 
-                thirdPersonCameraController.SetActive(true);
+            thirdPersonCameraInstance.transform.localPosition = thirdPersonCameraOffset;
+            thirdPersonCameraInstance.name                    = thirdPersonCameraPrefab.name;
 
-                jumpEnabled = true;
-            }
-
-            CurrentCameraTransform = firstPerson ? firstPersonCamera.transform : thirdPersonCameraInstance.transform;
-
-            mouseLook.Setup(transform, CurrentCameraTransform.transform);
+            mouseLook.SwitchToTPP(thirdPersonCameraInstance.transform, cameraTargetInstance.transform);
         }
 
         public void SetFreeze(bool state)
         {
             freezed                       = state;
             mouseLook.freezeModelRotation = state;
+
+            input = Vector3.zero;
         }
     }
 }
