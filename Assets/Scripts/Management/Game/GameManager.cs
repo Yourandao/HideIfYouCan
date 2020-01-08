@@ -15,7 +15,7 @@ namespace Scripts.Management.Game
 {
     public sealed class GameManager : MonoBehaviour
     {
-        [SerializeField] private GameSettings gameSettings = new GameSettings();
+        public GameSettings gameSettings = new GameSettings();
 
         [Attributes.Scene]
         public string[] gameplayScenes;
@@ -39,7 +39,7 @@ namespace Scripts.Management.Game
             switch (gameState)
             {
                 case GameState.Waiting:
-                    if (ServerManager.LoadedPlayers == ServerManager.AllPlayers ||
+                    if (ServerManager.LoadedPlayers == ServerManager.PlayersCount ||
                         time >= gameSettings.maxWaitingTime)
                     {
                         gameState = GameState.FreezeTime;

@@ -1,4 +1,8 @@
-﻿using UnityEngine;
+﻿using Assets.Scripts.Player.Settings;
+
+using Scripts.PlayerScripts.Settings;
+
+using UnityEngine;
 
 namespace Scripts.Management.Game
 {
@@ -18,5 +22,13 @@ namespace Scripts.Management.Game
 
         [Header("Roles Settings")]
         [Range(.1f, 1f)] public float seekersToHidersRelation = .25f;
+
+        public ControllerSettings controllerSettings = new ControllerSettings();
+
+        public HealthSettings healthSettings = new HealthSettings();
+
+        public HiderSettings hiderSettings = new HiderSettings();
+
+        public SeekerSettings seekerSettings = new SeekerSettings();
     }
 }

@@ -5,23 +5,19 @@ using Mirror;
 using Scripts.Components;
 using Scripts.Management.Network;
 using Scripts.PlayerScripts.Control;
+using Scripts.PlayerScripts.Settings;
 
 using UnityEngine;
 
-namespace Scripts.PlayerScripts
+namespace Scripts.PlayerScripts.Behaviour
 {
     public sealed class Transformation : NetworkBehaviour
     {
-        [SerializeField] private Player player;
+        [HideInInspector] public Player player;
 
         private PlayerController controller;
 
-        [Header("Settings")]
-        [SerializeField] private float interactionDistance = 5f;
-
-        [SerializeField] private float holdToFreeze = 2f;
-
-        [SerializeField] private float freezingTime = 3f;
+        private HiderSettings settings;
 
         [SerializeField] private LayerMask interactableObjects;
 
@@ -41,14 +37,19 @@ namespace Scripts.PlayerScripts
         private void Start()
         {
             controller = player.controller;
+
+            settings = player.gameSettings.hiderSettings;
         }
 
         private void Update()
         {
+            if (player.Paused)
+                return;
+
             if (Input.GetButton("Interact"))
                 holdingTime += Time.deltaTime;
 
-            if (holdingTime >= holdToFreeze && prop != null)
+            if (holdingTime >= settings.freezeHoldingTime && prop != null)
             {
                 CmdSetFreeze(!freezed);
 
@@ -67,7 +68,7 @@ namespace Scripts.PlayerScripts
         [Command]
         private void CmdTransform(Vector3 from, Vector3 direction)
         {
-            if (Physics.Raycast(from, direction, interactionDistance, interactableObjects))
+            if (Physics.Raycast(from, direction, settings.interactionDistance, interactableObjects))
                 ServerManager.GetPlayer(netId).transformation.RpcTransform(from, direction);
         }
 
@@ -75,9 +76,7 @@ namespace Scripts.PlayerScripts
         private void RpcTransform(Vector3 from, Vector3 direction)
         {
             Physics.Raycast(from, direction, out var hit,
-                            interactionDistance, interactableObjects);
-
-            Utility.SetLayerRecursively(hit.collider.gameObject, 0);
+                            settings.interactionDistance, interactableObjects);
 
             prop = hit.collider.GetComponent<PropHolder>().prop;
 
@@ -87,12 +86,16 @@ namespace Scripts.PlayerScripts
 
             modelInstance = Instantiate(prop.prefab, modelHolder);
 
+            Utility.SetLayerRecursively(modelInstance, Utility.LayerMaskToLayer(player.propMask));
+
             if (!isLocalPlayer)
                 return;
 
             controller.SwitchToTPP(modelInstance.transform);
-            controller.speedMultiplier     = prop.speedMultiplier;
+            controller.speedMultiplier      = prop.speedMultiplier;
             controller.jumpHeightMultiplier = prop.jumpHeightMultiplier;
+
+            // TODO: Configure character controller size according to prop size
         }
 
         [Command]
@@ -106,7 +109,7 @@ namespace Scripts.PlayerScripts
             {
                 float time = 0f;
 
-                while (time < freezingTime)
+                while (time < settings.freezingTime)
                 {
                     yield return new WaitForFixedUpdate();
 

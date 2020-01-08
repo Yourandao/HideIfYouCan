@@ -1,5 +1,7 @@
 ﻿using Mirror;
 
+using Scripts.PlayerScripts.Settings;
+
 using UnityEngine;
 
 namespace Scripts.PlayerScripts.Control
@@ -7,6 +9,8 @@ namespace Scripts.PlayerScripts.Control
     [RequireComponent(typeof(CharacterController))]
     public sealed class PlayerController : MonoBehaviour
     {
+        [HideInInspector] public Player player;
+
         [SerializeField] private CharacterController controller;
 
         [SerializeField] private Animator        animator;
@@ -17,6 +21,8 @@ namespace Scripts.PlayerScripts.Control
         private static readonly int _vertical   = Animator.StringToHash("Vertical");
         private static readonly int _isRunning  = Animator.StringToHash("IsRunning");
 
+        private ControllerSettings settings;
+
         [Header("Cameras")]
         public Transform firstPersonCamera;
 
@@ -26,12 +32,7 @@ namespace Scripts.PlayerScripts.Control
         private GameObject cameraTargetInstance;
         private GameObject thirdPersonCameraInstance;
 
-        [Header("Movement")]
         [SerializeField] private MouseLook mouseLook = new MouseLook();
-
-        [SerializeField] private float jogSpeed   = 2.5f;
-        [SerializeField] private float runSpeed   = 5f;
-        [SerializeField] private float jumpHeight = 1f;
 
         [SerializeField] [Range(0f, 1f)] private float smoothFactor = .25f;
 
@@ -52,6 +53,8 @@ namespace Scripts.PlayerScripts.Control
 
         private void Start()
         {
+            settings = player.gameSettings.controllerSettings;
+
             mouseLook.Setup(transform, firstPersonCamera);
             SwitchToFPP();
 
@@ -60,7 +63,7 @@ namespace Scripts.PlayerScripts.Control
 
             freezed = true;
 
-            speed = jogSpeed;
+            speed = settings.jogSpeed;
 
             input = new Vector3();
 
@@ -82,13 +85,13 @@ namespace Scripts.PlayerScripts.Control
             {
                 if (Input.GetButtonDown("Run"))
                 {
-                    speed = runSpeed;
+                    speed = settings.runSpeed;
 
                     animator.SetBool(_isRunning, true);
                 }
                 else if (Input.GetButtonUp("Run"))
                 {
-                    speed = jogSpeed;
+                    speed = settings.jogSpeed;
 
                     animator.SetBool(_isRunning, false);
                 }
@@ -98,7 +101,7 @@ namespace Scripts.PlayerScripts.Control
                 animator.SetBool(_moving, input != Vector3.zero);
 
                 if (Input.GetButtonDown("Jump") && jumpEnabled)
-                    velocity.y = Mathf.Sqrt(jumpHeight * jumpHeightMultiplier * -2f * Physics.gravity.y);
+                    velocity.y = Mathf.Sqrt(settings.jumpHeight * jumpHeightMultiplier * -2f * Physics.gravity.y);
             }
             else
                 velocity += Physics.gravity * Time.deltaTime;

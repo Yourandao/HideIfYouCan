@@ -16,7 +16,7 @@ namespace Scripts.PlayerScripts.Control
         [SerializeField] private float minimumXFirstPerson = -90f;
 
         [Header("TPP")]
-        [SerializeField] private float maximumXThirdPerson = 75f;
+        [SerializeField] private float maximumXThirdPerson = 60f;
 
         [SerializeField] private float minimumXThirdPerson = 0f;
         // TODO: Count it automatically

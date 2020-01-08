@@ -1,6 +1,7 @@
 ﻿using Mirror;
 
 using Scripts.Management.Network;
+using Scripts.UI;
 
 using UnityEngine;
 
@@ -16,7 +17,7 @@ namespace Scripts.PlayerScripts
         private                  UserInterface userInterface;
 
         [Header("Components Management")]
-        [SerializeField] private Behaviour[] componentsToEnable;
+        [SerializeField] private UnityEngine.Behaviour[] componentsToEnable;
 
         [SerializeField] private CharacterController controller;
 
@@ -61,6 +62,9 @@ namespace Scripts.PlayerScripts
             ServerManager.UnregisterPlayer(netId, player.role);
 
             userInterface.UpdateStats();
+
+            if (isLocalPlayer)
+                ServerManager.Singleton.ToggleSceneCamera(true);
         }
     }
 }

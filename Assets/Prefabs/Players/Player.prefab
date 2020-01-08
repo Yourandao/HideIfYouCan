@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 7837650515227380864}
   - component: {fileID: 7722692716146964897}
   - component: {fileID: 4727609327375919313}
+  - component: {fileID: 1706263862607763374}
   - component: {fileID: 1664009907526994776}
   - component: {fileID: 2129284956287590308}
   - component: {fileID: 3993366079011660372}
@@ -72,6 +73,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdf27f2ee0f68a94580a0a862d6c3e9b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  player: {fileID: 0}
   controller: {fileID: 7837650515227380864}
   animator: {fileID: 6294809332798913444}
   networkAnimator: {fileID: 7191192279263046336}
@@ -84,16 +86,12 @@ MonoBehaviour:
     ySensitivity: 2.5
     maximumXFirstPerson: 90
     minimumXFirstPerson: -90
-    maximumXThirdPerson: 75
+    maximumXThirdPerson: 60
     minimumXThirdPerson: 0
     freezeModelRotation: 0
-  jogSpeed: 2.5
-  runSpeed: 5
-  jumpForce: 2.5
-  gravityMultiplier: 2.5
   smoothFactor: 0.2
   speedMultiplier: 1
-  jumpForceMultiplier: 1
+  jumpHeightMultiplier: 1
   freezed: 0
 --- !u!114 &4727609327375919313
 MonoBehaviour:
@@ -110,14 +108,26 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.1
   player: {fileID: 1664009907526994776}
-  interactionDistance: 5
-  holdToFreeze: 2
-  freezingTime: 3
   interactableObjects:
     serializedVersion: 2
     m_Bits: 512
   seekerModel: {fileID: 1119986346287998157}
   modelHolder: {fileID: 5177748670604408609}
+--- !u!114 &1706263862607763374
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 125477385085476026}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 506800233f224e4e8e911c1e921d4811, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncMode: 0
+  syncInterval: 0.1
+  player: {fileID: 0}
 --- !u!114 &1664009907526994776
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -134,7 +144,37 @@ MonoBehaviour:
   syncInterval: 0.01
   controller: {fileID: 7722692716146964897}
   transformation: {fileID: 4727609327375919313}
+  catching: {fileID: 1706263862607763374}
+  gameSettings:
+    maxWaitingTime: 30
+    freezeTime: 10
+    hideTime: 60
+    seekTime: 300
+    endingTime: 30
+    seekersToHidersRelation: 0.25
+    controllerSettings:
+      jogSpeed: 2.5
+      runSpeed: 5
+      jumpHeight: 1
+    healthSettings:
+      defaultHealthAmount: 100
+      regenerationSpeed: 0.1
+      regenerationDelay: 5
+    hiderSettings:
+      interactionDistance: 5
+      freezeHoldingTime: 2
+      freezingTime: 3
+    seekerSettings:
+      damage: 25
+      fireRate: 60
+      magazineCapacity: 4
+      reloadTime: 2.5
+  disableOnDeath: []
+  propMask:
+    serializedVersion: 2
+    m_Bits: 0
   role: 0
+  healthAmount: 0
 --- !u!114 &2129284956287590308
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -156,6 +196,7 @@ MonoBehaviour:
   - {fileID: 7722692716146964897}
   - {fileID: 6747565804293045577}
   - {fileID: 4727609327375919313}
+  - {fileID: 1706263862607763374}
   controller: {fileID: 7837650515227380864}
   seekerModel: {fileID: 1119986346287998157}
   firstPersonModelLayer:

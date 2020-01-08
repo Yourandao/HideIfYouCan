@@ -20,6 +20,8 @@ namespace Scripts.Management.Network
 
         public GameManager gameManager;
 
+        private GameObject sceneCamera;
+
         private static List<Transform> _hiderSpawns  = new List<Transform>();
         private static List<Transform> _seekerSpawns = new List<Transform>();
 
@@ -28,7 +30,7 @@ namespace Scripts.Management.Network
 
         private static Dictionary<uint, Player> _players = new Dictionary<uint, Player>();
 
-        public static int AllPlayers
+        public static int PlayersCount
         {
             get => _players.Count;
         }
@@ -44,7 +46,8 @@ namespace Scripts.Management.Network
             base.Awake();
 
             if (Singleton != null)
-                throw new MultiInstanceException(gameObject);
+                Destroy(Singleton);
+            //throw new MultiInstanceException(gameObject);
 
             Singleton = this;
 
@@ -58,6 +61,22 @@ namespace Scripts.Management.Network
 
             #endif
         }
+
+        public override void Start()
+        {
+            base.Start();
+
+            if (Camera.main != null)
+                sceneCamera = Camera.main.gameObject;
+        }
+
+        public void ToggleSceneCamera(bool state)
+        {
+            if (sceneCamera != null)
+                sceneCamera.SetActive(state);
+        }
+
+        #region Server management
 
         public override void OnRoomStartServer()
         {
@@ -105,6 +124,8 @@ namespace Scripts.Management.Network
 
             LoadedPlayers++;
         }
+
+        #endregion
 
         #region Spawns management
 
