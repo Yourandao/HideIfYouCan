@@ -95,7 +95,6 @@ MonoBehaviour:
   speedMultiplier: 1
   jumpForceMultiplier: 1
   freezed: 0
-  stopped: 0
 --- !u!114 &4727609327375919313
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -159,7 +158,7 @@ MonoBehaviour:
   - {fileID: 4727609327375919313}
   controller: {fileID: 7837650515227380864}
   seekerModel: {fileID: 1119986346287998157}
-  fpModelLayer:
+  firstPersonModelLayer:
     serializedVersion: 2
     m_Bits: 256
 --- !u!114 &3993366079011660372

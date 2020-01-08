@@ -22,7 +22,7 @@ namespace Scripts.PlayerScripts
 
         [SerializeField] private GameObject seekerModel;
 
-        [SerializeField] private LayerMask fpModelLayer;
+        [SerializeField] private LayerMask firstPersonModelLayer;
 
         public override void OnStartLocalPlayer()
         {
@@ -31,7 +31,7 @@ namespace Scripts.PlayerScripts
             Utility.ToggleComponents(ref componentsToEnable, true);
             controller.enabled = true;
 
-            Utility.SetLayerRecursively(seekerModel, Utility.LayerMaskToLayer(fpModelLayer));
+            Utility.SetLayerRecursively(seekerModel, Utility.LayerMaskToLayer(firstPersonModelLayer));
 
             UIInstance      = Instantiate(UIPrefab);
             UIInstance.name = UIPrefab.name;

@@ -74,9 +74,6 @@ namespace Scripts.PlayerScripts.Control
             if (stopped)
                 return;
 
-            if (Cursor.lockState != CursorLockMode.Locked)
-                Cursor.lockState = CursorLockMode.Locked;
-
             mouseLook.InputRotation();
 
             if (freezed)
@@ -127,6 +124,9 @@ namespace Scripts.PlayerScripts.Control
 
         private void LateUpdate()
         {
+            if (stopped)
+                return;
+
             mouseLook.Rotate();
         }
 
@@ -180,6 +180,8 @@ namespace Scripts.PlayerScripts.Control
         public void SetStop(bool state)
         {
             stopped = state;
+
+            Cursor.lockState = state ? CursorLockMode.None : CursorLockMode.Locked;
 
             if (state)
                 input = Vector3.zero;
