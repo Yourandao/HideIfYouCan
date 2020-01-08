@@ -10,8 +10,14 @@ using Scripts.PlayerScripts;
 using UnityEngine;
 using UnityEngine.UI;
 
+[RequireComponent(typeof(AudioSource))]
 public class UIDisplay : MonoBehaviour
 {
+	[SerializeField] private AudioClip _buttonSound;
+
+	[SerializeField] private Button _resumeButton;
+	[SerializeField] private Button _quitButton;
+
 	[SerializeField] private GameObject _mainUI;
 	[SerializeField] private GameObject _pauseUI;
 
@@ -31,6 +37,19 @@ public class UIDisplay : MonoBehaviour
 
 	private bool _isPaused = false;
 
+	private AudioSource _buttonAudioSource;
+
+	private void Start()
+	{
+		_buttonAudioSource = GetComponent<AudioSource>();
+
+		_buttonAudioSource.clip = _buttonSound;
+		_buttonAudioSource.volume = .5f;
+
+		_resumeButton.onClick.AddListener(() => _buttonAudioSource.PlayOneShot(_buttonSound));
+		_quitButton.onClick.AddListener(() => _buttonAudioSource.PlayOneShot(_buttonSound));
+	}
+
 	private void Update()
 	{
 		if (Input.GetKeyDown(KeyCode.Escape))
@@ -45,16 +64,16 @@ public class UIDisplay : MonoBehaviour
 			}
 		}
 
-		UpdateMainUI();
+		UpdateUiState();
 	}
 
-	private void UpdateMainUI()
+	private void UpdateUiState()
 	{
 		_players = ServerManager.GetAllPlayers().ToList();
 
-		_seekersCount = _players.Count(p => p.role == Scripts.Components.Role.Seeker);
-		_hidersCount = _players.Count(p => p.role == Scripts.Components.Role.Hider);
-		_spectatorsCount = _players.Count(p => p.role == Scripts.Components.Role.Spectator);
+		_seekersCount = _players.Count(p => p.role == Role.Seeker);
+		_hidersCount = _players.Count(p => p.role == Role.Hider);
+		_spectatorsCount = _players.Count(p => p.role == Role.Spectator);
 
 		role.text = _playerRole.ToString();
 
