@@ -92,7 +92,7 @@ namespace Scripts.PlayerScripts
 
             controller.SwitchToTPP(modelInstance.transform);
             controller.speedMultiplier     = prop.speedMultiplier;
-            controller.jumpForceMultiplier = prop.jumpForceMultiplier;
+            controller.jumpHeightMultiplier = prop.jumpHeightMultiplier;
         }
 
         [Command]

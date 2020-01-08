@@ -29,15 +29,14 @@ namespace Scripts.PlayerScripts.Control
         [Header("Movement")]
         [SerializeField] private MouseLook mouseLook = new MouseLook();
 
-        [SerializeField] private float jogSpeed          = 2.5f;
-        [SerializeField] private float runSpeed          = 5f;
-        [SerializeField] private float jumpForce         = 10f;
-        [SerializeField] private float gravityMultiplier = 2.5f;
+        [SerializeField] private float jogSpeed   = 2.5f;
+        [SerializeField] private float runSpeed   = 5f;
+        [SerializeField] private float jumpHeight = 1f;
 
         [SerializeField] [Range(0f, 1f)] private float smoothFactor = .25f;
 
-        [HideInInspector] public float speedMultiplier     = 1f;
-        [HideInInspector] public float jumpForceMultiplier = 1f;
+        [HideInInspector] public float speedMultiplier      = 1f;
+        [HideInInspector] public float jumpHeightMultiplier = 1f;
 
         [HideInInspector] public bool freezed;
         private                  bool stopped;
@@ -96,11 +95,13 @@ namespace Scripts.PlayerScripts.Control
 
                 input.Set(Input.GetAxisRaw("Horizontal"), 0f, Input.GetAxisRaw("Vertical"));
 
+                animator.SetBool(_moving, input != Vector3.zero);
+
                 if (Input.GetButtonDown("Jump") && jumpEnabled)
-                    velocity.y = jumpForce * jumpForceMultiplier;
+                    velocity.y = Mathf.Sqrt(jumpHeight * jumpHeightMultiplier * -2f * Physics.gravity.y);
             }
             else
-                velocity += Physics.gravity * (gravityMultiplier * Time.deltaTime);
+                velocity += Physics.gravity * Time.deltaTime;
         }
 
         private void FixedUpdate()
@@ -108,15 +109,17 @@ namespace Scripts.PlayerScripts.Control
             var desiredVelocity = transform.right * input.x +
                                   transform.forward * input.z;
 
+            float y = velocity.y;
+
             velocity = Vector3.Lerp(velocity,
                                     desiredVelocity * (speed * speedMultiplier),
                                     smoothFactor);
 
+            velocity.y = y;
+
             localVelocity = Vector3.Lerp(localVelocity, input, smoothFactor);
 
             controller.Move(velocity * Time.fixedDeltaTime);
-
-            animator.SetBool(_moving, desiredVelocity != Vector3.zero);
 
             animator.SetFloat(_horizontal, localVelocity.x);
             animator.SetFloat(_vertical, localVelocity.z);

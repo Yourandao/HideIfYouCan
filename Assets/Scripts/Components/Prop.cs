@@ -7,7 +7,7 @@ namespace Scripts.Components
     {
         public float speedMultiplier;
 
-        public float jumpForceMultiplier;
+        public float jumpHeightMultiplier;
 
         public GameObject prefab;
     }
