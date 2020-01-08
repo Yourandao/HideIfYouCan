@@ -122,7 +122,7 @@ namespace Scripts.PlayerScripts
         {
             freezed = state;
 
-            controller.SetFreeze(state);
+            controller.SetPropFreeze(state);
         }
     }
 }

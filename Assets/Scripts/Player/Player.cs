@@ -1,4 +1,6 @@
-﻿using Mirror;
+﻿using System;
+
+using Mirror;
 
 using Scripts.Components;
 using Scripts.PlayerScripts.Control;
@@ -14,13 +16,20 @@ namespace Scripts.PlayerScripts
         [Header("Components")]
         public PlayerController controller;
 
+        private UserInterface userInterface;
+
         public Transformation transformation;
 
         [HideInInspector]
         [SyncVar] public Role role;
 
-        public void Setup()
+        public void Setup(UserInterface userInterface)
         {
+            this.userInterface = userInterface;
+
+            this.userInterface.player = this;
+            this.userInterface.UpdateStats();
+
             CmdSetup();
         }
 
@@ -34,6 +43,12 @@ namespace Scripts.PlayerScripts
                 transformation.enabled = false;
         }
 
+        private void Update()
+        {
+            if (Input.GetButtonDown("Cancel"))
+                userInterface.TogglePause();
+        }
+
         [ClientRpc]
         public void RpcStartGame()
         {
@@ -43,7 +58,7 @@ namespace Scripts.PlayerScripts
         [ClientRpc]
         public void RpcStopGame()
         {
-            controller.stopped = true;
+            controller.SetStop(true);
         }
     }
 }

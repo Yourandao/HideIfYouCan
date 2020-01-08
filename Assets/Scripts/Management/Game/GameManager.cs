@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Mirror;
-using Mirror.Websocket;
 
 using Scripts.Components;
 using Scripts.Management.Network;
@@ -23,9 +22,7 @@ namespace Scripts.Management.Game
 
         private GameState gameState;
 
-        private int seekersCount;
-
-        public static float time { get; private set; }
+        private float time;
 
         private void Awake()
         {
@@ -37,7 +34,7 @@ namespace Scripts.Management.Game
             if (gameState == GameState.Finished || gameState == GameState.NotStarted)
                 return;
 
-            time += Time.fixedDeltaTime;
+            time += UnityEngine.Time.fixedDeltaTime;
 
             switch (gameState)
             {
@@ -118,8 +115,8 @@ namespace Scripts.Management.Game
         {
             var unassignedPlayers = new List<RoomPlayer>(players);
 
-            seekersCount = (int) Math.Round(players.Count * gameSettings.seekersToHidersRelation,
-                                            MidpointRounding.AwayFromZero);
+            int seekersCount = (int) Math.Round(players.Count * gameSettings.seekersToHidersRelation,
+                                                MidpointRounding.AwayFromZero);
 
             for (int i = 0; i < seekersCount; i++)
             {
@@ -143,6 +140,19 @@ namespace Scripts.Management.Game
                                      .ToArray());
 
             Debug.Log("Waiting phase");
+        }
+
+        public float GetTime()
+        {
+            switch (gameState)
+            {
+                case GameState.Waiting:    return gameSettings.maxWaitingTime - time;
+                case GameState.FreezeTime: return gameSettings.freezeTime - time;
+                case GameState.HideTime:   return gameSettings.hideTime - time;
+                case GameState.SeekTime:   return gameSettings.seekTime - time;
+                case GameState.Ending:     return gameSettings.endingTime - time;
+                default:                   return default;
+            }
         }
     }
 }

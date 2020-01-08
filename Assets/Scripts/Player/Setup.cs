@@ -11,6 +11,10 @@ namespace Scripts.PlayerScripts
     {
         [SerializeField] private Player player;
 
+        [SerializeField] private GameObject    UIPrefab;
+        private                  GameObject    UIInstance;
+        private                  UserInterface userInterface;
+
         [Header("Components Management")]
         [SerializeField] private Behaviour[] componentsToEnable;
 
@@ -29,7 +33,12 @@ namespace Scripts.PlayerScripts
 
             Utility.SetLayerRecursively(seekerModel, Utility.LayerMaskToLayer(fpModelLayer));
 
-            player.Setup();
+            UIInstance      = Instantiate(UIPrefab);
+            UIInstance.name = UIPrefab.name;
+
+            userInterface = UIInstance.GetComponent<UserInterface>();
+
+            player.Setup(userInterface);
             CmdSetName(name);
         }
 
@@ -50,6 +59,8 @@ namespace Scripts.PlayerScripts
         public void OnDisable()
         {
             ServerManager.UnregisterPlayer(netId, player.role);
+
+            userInterface.UpdateStats();
         }
     }
 }

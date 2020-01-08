@@ -151,6 +151,8 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.1
   player: {fileID: 1664009907526994776}
+  UIPrefab: {fileID: 7058570166395294065, guid: 7e26d61c7049d3d42b7a46620368dcdf,
+    type: 3}
   componentsToEnable:
   - {fileID: 7722692716146964897}
   - {fileID: 6747565804293045577}
