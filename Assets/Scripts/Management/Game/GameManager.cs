@@ -34,7 +34,7 @@ namespace Scripts.Management.Game
             if (gameState == GameState.Finished || gameState == GameState.NotStarted)
                 return;
 
-            time += UnityEngine.Time.fixedDeltaTime;
+            time += Time.fixedDeltaTime;
 
             switch (gameState)
             {
@@ -142,17 +142,35 @@ namespace Scripts.Management.Game
             Debug.Log("Waiting phase");
         }
 
-        public float GetTime()
+        public (GameState, float) GetState()
         {
+            var value = (gameState, default(float));
+
             switch (gameState)
             {
-                case GameState.Waiting:    return gameSettings.maxWaitingTime - time;
-                case GameState.FreezeTime: return gameSettings.freezeTime - time;
-                case GameState.HideTime:   return gameSettings.hideTime - time;
-                case GameState.SeekTime:   return gameSettings.seekTime - time;
-                case GameState.Ending:     return gameSettings.endingTime - time;
-                default:                   return default;
+                case GameState.Waiting:
+                    value.Item2 = gameSettings.maxWaitingTime - time;
+
+                    break;
+                case GameState.FreezeTime:
+                    value.Item2 = gameSettings.freezeTime - time;
+
+                    break;
+                case GameState.HideTime:
+                    value.Item2 = gameSettings.hideTime - time;
+
+                    break;
+                case GameState.SeekTime:
+                    value.Item2 = gameSettings.seekTime - time;
+
+                    break;
+                case GameState.Ending:
+                    value.Item2 = gameSettings.endingTime - time;
+
+                    break;
             }
+
+            return value;
         }
     }
 }

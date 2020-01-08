@@ -26,11 +26,12 @@ public class UserInterface : MonoBehaviour
 
     [SerializeField] private Button quitButton;
 
-    [SerializeField] private Text timeText;
-    [SerializeField] private Text roleText;
-    [SerializeField] private Text seekersText;
-    [SerializeField] private Text hidersText;
-    [SerializeField] private Text spectatorsText;
+    [SerializeField] private Text gameState;
+    [SerializeField] private Text time;
+    [SerializeField] private Text role;
+    [SerializeField] private Text seekers;
+    [SerializeField] private Text hiders;
+    [SerializeField] private Text spectators;
 
     [HideInInspector] public Player player;
 
@@ -46,22 +47,25 @@ public class UserInterface : MonoBehaviour
 
     private void Update()
     {
-        timeText.text = TimeSpan.FromSeconds(ServerManager.Singleton.gameManager.GetTime()).ToString(@"mm\:ss");
+        var state = ServerManager.Singleton.gameManager.GetState();
+
+        gameState.text = state.Item1.ToString();
+        time.text      = TimeSpan.FromSeconds(state.Item2).ToString(@"mm\:ss");
     }
 
     public void UpdateStats()
     {
         var players = ServerManager.GetAllPlayers().ToList();
 
-        roleText.text = player.role.ToString();
+        role.text = player.role.ToString();
 
         int seekersCount    = players.Count(p => p.role == Role.Seeker);
         int hidersCount     = players.Count(p => p.role == Role.Hider);
         int spectatorsCount = players.Count(p => p.role == Role.Spectator);
 
-        seekersText.text    = $"Seekers: {seekersCount}";
-        hidersText.text     = $"Hiders: {hidersCount}";
-        spectatorsText.text = $"Spectators: {spectatorsCount}";
+        seekers.text    = $"Seekers: {seekersCount}";
+        hiders.text     = $"Hiders: {hidersCount}";
+        spectators.text = $"Spectators: {spectatorsCount}";
     }
 
     public void TogglePause()
