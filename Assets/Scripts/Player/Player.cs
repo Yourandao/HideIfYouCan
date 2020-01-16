@@ -133,6 +133,8 @@ namespace Scripts.PlayerScripts
             BecomeSpectator();
 
             // TODO: Show source in kill feed
+
+            Debug.Log("becoming a spectator");
         }
 
         [TargetRpc]
@@ -148,6 +150,10 @@ namespace Scripts.PlayerScripts
         private void TargetBecomeSpectator(NetworkConnection connection)
         {
             // TODO: Spectate for alive players
+
+            controller.enabled = false;
+
+            Debug.Log("became a spectator");
         }
     }
 }
