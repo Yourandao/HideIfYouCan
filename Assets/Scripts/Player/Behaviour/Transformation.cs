@@ -2,7 +2,6 @@
 
 using Mirror;
 
-using Scripts.Management.Network;
 using Scripts.PlayerScripts.Control;
 using Scripts.Props;
 
@@ -37,10 +36,10 @@ namespace Scripts.PlayerScripts.Behaviour
 
         private bool freezed;
 
-        private void Start()
+        public void Setup()
         {
             player = GetComponent<Player>();
-            
+
             controller = player.controller;
         }
 
@@ -74,11 +73,18 @@ namespace Scripts.PlayerScripts.Behaviour
             var direction = controller.firstPersonCamera.forward;
 
             if (Physics.Raycast(from, direction, out var hit, interactionDistance, interactableObjects))
-                ServerManager.GetPlayer(netId).transformation.RpcTransform(hit.collider.gameObject);
+            {
+                var propObject = hit.collider.gameObject;
+
+                Transform(propObject);
+                RpcTransform(propObject);
+            }
         }
 
         [ClientRpc]
-        private void RpcTransform(GameObject propObject)
+        private void RpcTransform(GameObject propObject) => Transform(propObject);
+
+        private void Transform(GameObject propObject)
         {
             prop = propObject.GetComponent<PropHolder>().prop;
 
@@ -97,7 +103,7 @@ namespace Scripts.PlayerScripts.Behaviour
             controller.speedMultiplier      = prop.speedMultiplier;
             controller.jumpHeightMultiplier = prop.jumpHeightMultiplier;
 
-            // TODO: Configure character controller size according to prop size
+            controller.SetSize(propObject.GetComponent<MeshRenderer>().bounds.size);
         }
 
         [Command]
@@ -120,7 +126,7 @@ namespace Scripts.PlayerScripts.Behaviour
         {
             freezed = state;
 
-            controller.SetPropFreeze(state);
+            controller.SetFreeze(state, true);
         }
     }
 }
