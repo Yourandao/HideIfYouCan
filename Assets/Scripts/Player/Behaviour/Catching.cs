@@ -7,7 +7,7 @@ using Scripts.PlayerScripts.Control;
 
 using UnityEngine;
 
-namespace Scripts.PlayerScripts.Behaviour
+namespace Scripts.PlayerScripts.PlayerBehaviour
 {
     public sealed class Catching : NetworkBehaviour
     {

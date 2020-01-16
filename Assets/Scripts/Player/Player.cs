@@ -1,7 +1,11 @@
-﻿using Mirror;
+﻿using System.Collections.Generic;
+using System.Linq;
+
+using Mirror;
 
 using Scripts.Exceptions;
-using Scripts.PlayerScripts.Behaviour;
+using Scripts.Management.Network;
+using Scripts.PlayerScripts.PlayerBehaviour;
 using Scripts.PlayerScripts.Control;
 using Scripts.UI;
 
@@ -9,151 +13,191 @@ using UnityEngine;
 
 namespace Scripts.PlayerScripts
 {
-    [RequireComponent(typeof(PlayerController))]
-    [RequireComponent(typeof(Transformation))]
-    [RequireComponent(typeof(Catching))]
-    public sealed class Player : NetworkBehaviour
-    {
-        [Header("Components")]
-        public PlayerController controller;
+	[RequireComponent(typeof(PlayerController))]
+	[RequireComponent(typeof(Transformation))]
+	[RequireComponent(typeof(Catching))]
+	public sealed class Player : NetworkBehaviour
+	{
+		[Header("Components")]
+		public PlayerController controller;
 
-        public Transformation transformation;
+		public Transformation transformation;
 
-        public Catching catching;
+		public Catching catching;
 
-        [HideInInspector] public UserInterface userInterface;
+		[HideInInspector] public UserInterface userInterface;
 
-        [Header("Settings")]
-        [SerializeField] private float maxHealthAmount = 100f;
+		[SerializeField] private Behaviour[] disableOnDeath;
 
-        [SerializeField]
-        [Range(.01f, 1f)] private float regenerationSpeed = .1f;
+		[Header("Settings")]
+		[SerializeField] private float maxHealthAmount = 100f;
 
-        [SerializeField] private float regenerationDelay = 5f;
+		[SerializeField]
+		[Range(.01f, 1f)] private float regenerationSpeed = .1f;
 
-        [SyncVar] private float currentHealth;
+		[SerializeField] private float regenerationDelay = 5f;
 
-        public bool Paused { get; private set; }
+		[SyncVar] private float currentHealth;
 
-        [Space]
-        public LayerMask propMask;
+		private Transform[] playerCameras;
 
-        [HideInInspector]
-        [SyncVar] public Role role;
+		private int spectatingIndex = 0;
 
-        private void Start()
-        {
-            if (isServer)
-                currentHealth = maxHealthAmount;
+		[Range(0.0f, 1.0f)]
+		[SerializeField] private float cameraLerpFactor = .25f;
 
-            transformation.Setup();
-            catching.Setup();
-        }
+		public bool Paused { get; private set; }
 
-        public void Setup(UserInterface userInterface)
-        {
-            this.userInterface        = userInterface;
-            this.userInterface.player = this;
+		[Space]
+		public LayerMask propMask;
 
-            this.userInterface.UpdateRole(role);
+		[HideInInspector]
+		[SyncVar] public Role role;
 
-            controller.Setup();
-        }
+		private void Start()
+		{
+			if (isServer)
+				currentHealth = maxHealthAmount;
 
-        private void Update()
-        {
-            if (!isLocalPlayer)
-                return;
+			transformation.Setup();
+			catching.Setup();
+		}
 
-            if (Input.GetButtonDown("Cancel"))
-            {
-                Paused = !Paused;
+		public void Setup(UserInterface userInterface)
+		{
+			this.userInterface        = userInterface;
+			this.userInterface.player = this;
 
-                userInterface.TogglePause();
-                controller.SetStop(Paused);
-            }
-        }
+			this.userInterface.UpdateRole(role);
 
-        [ClientRpc]
-        public void RpcStartGame()
-        {
-            controller.SetFreeze(false, false);
+			controller.Setup();
+		}
 
-            if (isLocalPlayer)
-            {
-                switch (role)
-                {
-                    case Role.Seeker:
-                        catching.enabled = true;
+		private void Update()
+		{
+			if (!isLocalPlayer)
+				return;
 
-                        break;
-                    case Role.Hider:
-                        transformation.enabled = true;
+			if (role == Role.Spectator && playerCameras != null)
+			{
+				var currentPosition = controller.firstPersonCamera.position;
+				var newPosition = playerCameras[spectatingIndex % playerCameras.Length].position;
 
-                        break;
+				controller.firstPersonCamera.position =
+					Vector3.Lerp(currentPosition, newPosition, cameraLerpFactor);
+				
+				if (Input.GetButtonDown("Attack"))
+					spectatingIndex++;
+			}
 
-                    default: throw new UnhandledRoleException(role);
-                }
-            }
-        }
+			if (Input.GetButtonDown("Cancel"))
+			{
+				Paused = !Paused;
 
-        [ClientRpc]
-        public void RpcStopGame()
-        {
-            controller.SetStop(true);
+				userInterface.TogglePause();
+				controller.SetStop(Paused);
+			}
+		}
 
-            // TODO: Change UI with game ending
-        }
+		[ClientRpc]
+		public void RpcStartGame()
+		{
+			controller.SetFreeze(false, false);
 
-        [Server]
-        public void TakeDamage(float amount, uint source)
-        {
-            if (role != Role.Hider)
-                return;
+			if (isLocalPlayer)
+			{
+				switch (role)
+				{
+					case Role.Seeker:
+						catching.enabled = true;
 
-            currentHealth -= amount;
+						break;
+					case Role.Hider:
+						transformation.enabled = true;
 
-            TargetOnDamageTaken(connectionToClient);
+						break;
 
-            if (currentHealth <= 0f)
-                Die(source);
-        }
+					default: throw new UnhandledRoleException(role);
+				}
+			}
+		}
 
-        [TargetRpc]
-        private void TargetOnDamageTaken(NetworkConnection connection)
-        {
-            // TODO: Maybe some effects...
-        }
+		[ClientRpc]
+		public void RpcStopGame()
+		{
+			controller.SetStop(true);
 
-        [Server]
-        private void Die(uint source)
-        {
-            TargetOnDeath(connectionToClient);
+			// TODO: Change UI with game ending
+		}
 
-            BecomeSpectator();
+		public void TakeDamage(float amount, uint source)
+		{
+			if (role != Role.Hider)
+				return;
 
-            // TODO: Show source in kill feed
+			currentHealth -= amount;
 
-            Debug.Log("becoming a spectator");
-        }
+			TargetOnDamageTaken(connectionToClient);
 
-        [TargetRpc]
-        private void TargetOnDeath(NetworkConnection connection)
-        {
-            // TODO: Some local player actions
-        }
+			if (currentHealth <= 0f)
+			{
+				Die(source);
+				Debug.Log("hui");
+			}
+		}
 
-        [Server]
-        private void BecomeSpectator() => TargetBecomeSpectator(connectionToClient);
+		[TargetRpc]
+		private void TargetOnDamageTaken(NetworkConnection connection)
+		{
+			// TODO: Maybe some effects...
+		}
 
-        [TargetRpc]
-        private void TargetBecomeSpectator(NetworkConnection connection)
-        {
-            // TODO: Spectate for alive players
+		//comment code below
 
-            controller.enabled = false;
+		private void Die(uint source)
+		{
+			role = Role.Spectator;
 
-            Debug.Log("became a spectator");
-        }
-    }
+			RpcOnDeath();
+
+			BecomeSpectator();
+
+			// TODO: Show source in kill feed
+
+			Debug.Log("becoming a spectator");
+		}
+
+		[ClientRpc]
+		private void RpcOnDeath()
+		{
+			transformation.CurrentModel.SetActive(false);
+
+			if (isLocalPlayer)
+				Utility.ToggleComponents(ref disableOnDeath, false);
+
+			// TODO: Some local player actions
+		}
+
+		private void BecomeSpectator()
+		{
+			var cameraGameObjects = ServerManager.GetAllPlayers()
+			                                     .Where(player => player.role == Role.Seeker)
+			                                     .Select(player => player.GetComponent<NetworkTransformChild>().target);
+
+			TargetBecomeSpectator(connectionToClient, cameraGameObjects);
+		}
+
+		[TargetRpc]
+		private void TargetBecomeSpectator(NetworkConnection connection, IEnumerable<Transform> cameraGameObjects)
+		{
+			var cameras = cameraGameObjects.ToArray();
+
+			Debug.Log(cameras.Length);
+
+			// TODO: Spectate for alive players
+			playerCameras = cameras;
+
+			Debug.Log("became a spectator");
+		}
+	}
 }

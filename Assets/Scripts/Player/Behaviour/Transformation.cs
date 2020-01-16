@@ -7,7 +7,7 @@ using Scripts.Props;
 
 using UnityEngine;
 
-namespace Scripts.PlayerScripts.Behaviour
+namespace Scripts.PlayerScripts.PlayerBehaviour
 {
     public sealed class Transformation : NetworkBehaviour
     {
@@ -31,6 +31,8 @@ namespace Scripts.PlayerScripts.Behaviour
         private Prop prop;
 
         private GameObject modelInstance;
+
+        public GameObject CurrentModel => modelInstance == null ? modelInstance : seekerModel;
 
         private float holdingTime;
 
