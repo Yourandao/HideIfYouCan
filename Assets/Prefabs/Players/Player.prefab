@@ -180,11 +180,12 @@ MonoBehaviour:
   player: {fileID: 1664009907526994776}
   UIPrefab: {fileID: 7058570166395294065, guid: 7e26d61c7049d3d42b7a46620368dcdf,
     type: 3}
-  componentsToDisable:
+  componentsToEnable:
   - {fileID: 7722692716146964897}
+  - {fileID: 4727609327375919313}
+  - {fileID: 1706263862607763374}
   - {fileID: 6747565804293045577}
   - {fileID: 959224129974555084}
-  controller: {fileID: 7837650515227380864}
   seekerModel: {fileID: 1119986346287998157}
   firstPersonModelLayer:
     serializedVersion: 2

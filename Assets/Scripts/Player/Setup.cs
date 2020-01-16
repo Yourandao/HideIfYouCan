@@ -18,7 +18,7 @@ namespace Scripts.PlayerScripts
         private                  UserInterface userInterface;
 
         [Header("Components Management")]
-        [SerializeField] private UnityEngine.Behaviour[] componentsToDisable;
+        [SerializeField] private UnityEngine.Behaviour[] componentsToEnable;
 
         [SerializeField] private GameObject seekerModel;
 
@@ -28,7 +28,7 @@ namespace Scripts.PlayerScripts
         {
             base.OnStartLocalPlayer();
 
-            Utility.ToggleComponents(ref componentsToDisable, true);
+            Utility.ToggleComponents(ref componentsToEnable, true);
 
             Utility.SetLayerRecursively(seekerModel, Utility.LayerMaskToLayer(firstPersonModelLayer));
 

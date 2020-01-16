@@ -74,11 +74,11 @@ namespace Scripts.PlayerScripts.Behaviour
             var direction = controller.firstPersonCamera.forward;
 
             if (Physics.Raycast(from, direction, out var hit, interactionDistance, interactableObjects))
-                ServerManager.GetPlayer(netId).transformation.RpcTransform(hit.collider.gameObject);
+                TargetTransform(connectionToClient, hit.collider.gameObject);
         }
 
-        [ClientRpc]
-        private void RpcTransform(GameObject propObject)
+        [TargetRpc]
+        private void TargetTransform(NetworkConnection connection, GameObject propObject)
         {
             prop = propObject.GetComponent<PropHolder>().prop;
 

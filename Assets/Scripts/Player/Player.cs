@@ -33,7 +33,7 @@ namespace Scripts.PlayerScripts
 
         [SerializeField] private float regenerationDelay = 5f;
 
-        [SyncVar] private float currentHealth;
+        private float currentHealth;
 
         public bool Paused { get; private set; }
 
