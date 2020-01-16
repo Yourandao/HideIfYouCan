@@ -539,8 +539,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameUI: {fileID: 7058570167131921988}
   pauseUI: {fileID: 7058570167394294831}
-  _buttonAudioSource: {fileID: 7058570166395294059}
-  _buttonSound: {fileID: 8300000, guid: bb3fafcaadc3924489ca51dd9d2d0349, type: 3}
+  audioSource: {fileID: 7058570166395294059}
+  buttonClickSound: {fileID: 8300000, guid: bb3fafcaadc3924489ca51dd9d2d0349, type: 3}
   resumeButton: {fileID: 7058570167837252488}
   quitButton: {fileID: 7058570165952612509}
   gameState: {fileID: 2493548604866555800}
@@ -550,6 +550,7 @@ MonoBehaviour:
   hiders: {fileID: 7058570167800037347}
   spectators: {fileID: 7058570167541745729}
   player: {fileID: 0}
+  skipUpdates: 100
 --- !u!82 &7058570166395294059
 AudioSource:
   m_ObjectHideFlags: 0
