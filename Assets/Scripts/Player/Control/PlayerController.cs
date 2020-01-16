@@ -41,8 +41,8 @@ namespace Scripts.PlayerScripts.Control
         [HideInInspector] public float speedMultiplier      = 1f;
         [HideInInspector] public float jumpHeightMultiplier = 1f;
 
-        [HideInInspector] public bool freezed;
-        private                  bool stopped;
+        private bool freezed;
+        private bool stopped;
 
         private bool jumpEnabled;
 
@@ -53,23 +53,28 @@ namespace Scripts.PlayerScripts.Control
         private Vector3 velocity;
         private Vector3 localVelocity;
 
-        private void Start()
+        public void Setup()
         {
             player = GetComponent<Player>();
 
             mouseLook.Setup(transform, firstPersonCamera);
 
-            animator.SetFloat(_horizontal, 0f);
-            animator.SetFloat(_vertical, 0f);
+            ResetAnimator();
 
             freezed = true;
 
             speed = jogSpeed;
 
             input = new Vector3();
+        }
 
-            velocity      = new Vector3();
-            localVelocity = new Vector3();
+        private void ResetAnimator()
+        {
+            animator.SetFloat(_horizontal, 0f);
+            animator.SetFloat(_vertical, 0f);
+
+            animator.SetBool(_moving, false);
+            animator.SetBool(_isRunning, false);
         }
 
         private void Update()
@@ -142,6 +147,7 @@ namespace Scripts.PlayerScripts.Control
             firstPersonCamera.gameObject.SetActive(false);
             thirdPersonCameraPrefab.gameObject.SetActive(true);
 
+            ResetAnimator();
             networkAnimator.enabled = false;
             animator.enabled        = false;
 
@@ -160,10 +166,12 @@ namespace Scripts.PlayerScripts.Control
             mouseLook.SwitchToTPP(thirdPersonCameraInstance.transform, cameraTargetInstance.transform);
         }
 
-        public void SetPropFreeze(bool state)
+        public void SetFreeze(bool state, bool propOnly)
         {
-            freezed                       = state;
-            mouseLook.freezeModelRotation = state;
+            freezed = state;
+
+            if (propOnly)
+                mouseLook.freezeModelRotation = state;
 
             if (state)
                 input = Vector3.zero;
@@ -177,6 +185,14 @@ namespace Scripts.PlayerScripts.Control
 
             if (state)
                 input = Vector3.zero;
+        }
+
+        public void SetSize(Vector3 size)
+        {
+            controller.height = size.y;
+            controller.center = new Vector3(0f, controller.height / 2, 0f);
+
+            controller.radius = size.x <= size.z ? size.x : size.z;
         }
 
         private void OnEnable() => controller.enabled = true;

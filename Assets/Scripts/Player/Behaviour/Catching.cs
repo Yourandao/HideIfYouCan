@@ -29,7 +29,7 @@ namespace Scripts.PlayerScripts.Behaviour
 
         [SyncVar] private bool isReloading;
 
-        private void Start()
+        public void Setup()
         {
             player = GetComponent<Player>();
 
@@ -88,7 +88,7 @@ namespace Scripts.PlayerScripts.Behaviour
             {
                 uint id = hit.collider.GetComponentInParent<NetworkIdentity>().netId;
 
-                ServerManager.GetPlayer(id).RpcTakeDamage(damage, id);
+                ServerManager.GetPlayer(id).TakeDamage(damage, id);
             }
         }
 

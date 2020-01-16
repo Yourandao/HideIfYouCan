@@ -23,8 +23,6 @@ namespace Scripts.PlayerScripts
 
         [HideInInspector] public UserInterface userInterface;
 
-        [SerializeField] private UnityEngine.Behaviour[] disableOnDeath;
-
         [Header("Settings")]
         [SerializeField] private float maxHealthAmount = 100f;
 
@@ -33,7 +31,7 @@ namespace Scripts.PlayerScripts
 
         [SerializeField] private float regenerationDelay = 5f;
 
-        private float currentHealth;
+        [SyncVar] private float currentHealth;
 
         public bool Paused { get; private set; }
 
@@ -45,7 +43,11 @@ namespace Scripts.PlayerScripts
 
         private void Start()
         {
-            currentHealth = maxHealthAmount;
+            if (isServer)
+                currentHealth = maxHealthAmount;
+
+            transformation.Setup();
+            catching.Setup();
         }
 
         public void Setup(UserInterface userInterface)
@@ -55,8 +57,7 @@ namespace Scripts.PlayerScripts
 
             this.userInterface.UpdateRole(role);
 
-            catching.enabled       = false;
-            transformation.enabled = false;
+            controller.Setup();
         }
 
         private void Update()
@@ -76,7 +77,7 @@ namespace Scripts.PlayerScripts
         [ClientRpc]
         public void RpcStartGame()
         {
-            controller.freezed = false;
+            controller.SetFreeze(false, false);
 
             if (isLocalPlayer)
             {
@@ -100,35 +101,53 @@ namespace Scripts.PlayerScripts
         public void RpcStopGame()
         {
             controller.SetStop(true);
-            
+
             // TODO: Change UI with game ending
         }
 
-        [ClientRpc]
-        public void RpcTakeDamage(float amount, uint source)
+        [Server]
+        public void TakeDamage(float amount, uint source)
         {
             if (role != Role.Hider)
                 return;
 
             currentHealth -= amount;
 
+            TargetOnDamageTaken(connectionToClient);
+
             if (currentHealth <= 0f)
                 Die(source);
         }
 
+        [TargetRpc]
+        private void TargetOnDamageTaken(NetworkConnection connection)
+        {
+            // TODO: Maybe some effects...
+        }
+
+        [Server]
         private void Die(uint source)
         {
-            Utility.ToggleComponents(ref disableOnDeath, false);
+            TargetOnDeath(connectionToClient);
 
-            CmdBecomeSpectator();
+            BecomeSpectator();
 
             // TODO: Show source in kill feed
         }
 
-        [Command]
-        private void CmdBecomeSpectator() => RpcBecomeSpectator();
+        [TargetRpc]
+        private void TargetOnDeath(NetworkConnection connection)
+        {
+            // TODO: Some local player actions
+        }
 
-        [ClientRpc]
-        private void RpcBecomeSpectator() { }
+        [Server]
+        private void BecomeSpectator() => TargetBecomeSpectator(connectionToClient);
+
+        [TargetRpc]
+        private void TargetBecomeSpectator(NetworkConnection connection)
+        {
+            // TODO: Spectate for alive players
+        }
     }
 }
