@@ -1,8 +1,9 @@
 ﻿using System;
-using System.Linq;
 
-using Scripts.Components;
-using Scripts.Management.Network;
+using Mirror;
+
+using Scripts.Components.Network.Messages;
+using Scripts.Management.Game;
 using Scripts.PlayerScripts;
 
 using UnityEngine;
@@ -19,56 +20,85 @@ namespace Scripts.UI
         [SerializeField] private GameObject pauseUI;
 
         [Header("Audio")]
-        [SerializeField] private AudioSource _buttonAudioSource;
+        [SerializeField] private AudioSource audioSource;
 
-        [SerializeField] private AudioClip _buttonSound;
+        [SerializeField] private AudioClip buttonClickSound;
 
         [Header("UI Components")]
         [SerializeField] private Button resumeButton;
 
         [SerializeField] private Button quitButton;
-
-        [SerializeField] private Text gameState;
-        [SerializeField] private Text time;
-        [SerializeField] private Text role;
-        [SerializeField] private Text seekers;
-        [SerializeField] private Text hiders;
-        [SerializeField] private Text spectators;
+        [SerializeField] private Text   gameState;
+        [SerializeField] private Text   time;
+        [SerializeField] private Text   role;
+        [SerializeField] private Text   seekers;
+        [SerializeField] private Text   hiders;
+        [SerializeField] private Text   spectators;
 
         [HideInInspector] public Player player;
 
+        [SerializeField] private int skipUpdates = 100;
+
+        private int skipped;
+
         private bool paused;
+
+        private GameStateRequest    gameStateRequest;
+        private RoleCountersRequest roleCountersRequest;
+
+        private void Awake()
+        {
+            gameStateRequest    = new GameStateRequest();
+            roleCountersRequest = new RoleCountersRequest();
+
+            // TODO: Replace role counters with all players stats in future
+
+            NetworkClient.RegisterHandler<GameStateResponse>(CompileGameState);
+            NetworkClient.RegisterHandler<RoleCountersResponse>(UpdateRoleCounters);
+        }
 
         private void Start()
         {
-            _buttonAudioSource.clip = _buttonSound;
+            audioSource.clip = buttonClickSound;
 
-            resumeButton.onClick.AddListener(() => _buttonAudioSource.PlayOneShot(_buttonSound));
-            quitButton.onClick.AddListener(() => _buttonAudioSource.PlayOneShot(_buttonSound));
+            resumeButton.onClick.AddListener(() => audioSource.PlayOneShot(buttonClickSound));
+            quitButton.onClick.AddListener(() => audioSource.PlayOneShot(buttonClickSound));
+
+            NetworkClient.Send(gameStateRequest);
+            NetworkClient.Send(roleCountersRequest);
         }
 
-        private void Update()
+        private void FixedUpdate()
         {
-            var state = ServerManager.Singleton.gameManager.GetState();
+            NetworkClient.Send(gameStateRequest);
 
-            gameState.text = state.Item1.ToString();
-            time.text      = TimeSpan.FromSeconds(state.Item2).ToString(@"mm\:ss");
+            skipped++;
+
+            if (skipped == skipUpdates)
+            {
+                NetworkClient.Send(roleCountersRequest);
+
+                skipped = 0;
+            }
         }
 
-        public void UpdateStats()
+        private void CompileGameState(NetworkConnection sender, GameStateResponse response)
         {
-            var players = ServerManager.GetAllPlayers().ToList();
+            if (response.currentState == GameState.Ending)
+                enabled = false;
 
-            role.text = player.role.ToString();
-
-            int seekersCount    = players.Count(p => p.role == Role.Seeker);
-            int hidersCount     = players.Count(p => p.role == Role.Hider);
-            int spectatorsCount = players.Count(p => p.role == Role.Spectator);
-
-            seekers.text    = $"Seekers: {seekersCount}";
-            hiders.text     = $"Hiders: {hidersCount}";
-            spectators.text = $"Spectators: {spectatorsCount}";
+            gameState.text = response.currentState.ToString();
+            time.text      = TimeSpan.FromSeconds(response.remainingTime).ToString(@"mm\:ss");
         }
+
+        private void UpdateRoleCounters(NetworkConnection sender, RoleCountersResponse response)
+        {
+            seekers.text    = $"Seekers: {response.seekersCount}";
+            hiders.text     = $"Hiders: {response.hidersCount}";
+            spectators.text = $"Spectators: {response.spectatorsCount}";
+        }
+
+        public void UpdateRole(Role newRole) => role.text = newRole.ToString();
 
         public void TogglePause()
         {

@@ -18,7 +18,7 @@ namespace Scripts.PlayerScripts.Control
         [Header("TPP")]
         [SerializeField] private float maximumXThirdPerson = 60f;
 
-        [SerializeField] private float minimumXThirdPerson = 0f;
+        [SerializeField] private float minimumXThirdPerson = -15f;
         // TODO: Count it automatically
 
         private Transform player;
@@ -41,15 +41,10 @@ namespace Scripts.PlayerScripts.Control
         {
             this.player            = player;
             this.firstPersonCamera = firstPersonCamera;
-        }
-
-        public void SwitchToFPP()
-        {
-            target = null;
 
             firstPersonPerspective = true;
         }
-
+        
         public void SwitchToTPP(Transform thirdPersonCamera, Transform target)
         {
             this.thirdPersonCamera = thirdPersonCamera;

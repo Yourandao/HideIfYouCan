@@ -1,6 +1,6 @@
 ﻿using Mirror;
 
-using Scripts.Components;
+using Scripts.PlayerScripts;
 
 namespace Scripts.Management.Network
 {

@@ -1,6 +1,4 @@
-﻿using System;
-
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Scripts
 {
@@ -16,7 +14,7 @@ namespace Scripts
 
         public static void SetLayerRecursively(GameObject obj, int layer)
         {
-            if (obj == null)
+            if (obj is null)
                 return;
 
             obj.layer = layer;

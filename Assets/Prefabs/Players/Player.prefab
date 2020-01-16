@@ -15,11 +15,11 @@ GameObject:
   - component: {fileID: 1706263862607763374}
   - component: {fileID: 1664009907526994776}
   - component: {fileID: 2129284956287590308}
+  - component: {fileID: 6747565804293045577}
   - component: {fileID: 3993366079011660372}
-  - component: {fileID: 3538617589263873450}
+  - component: {fileID: 1858836160045844397}
   - component: {fileID: 7191192279263046336}
   - component: {fileID: 1858178469996139798}
-  - component: {fileID: 6747565804293045577}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -55,7 +55,7 @@ CharacterController:
   m_Enabled: 0
   serializedVersion: 2
   m_Height: 1.8
-  m_Radius: 0.5
+  m_Radius: 0.4
   m_SlopeLimit: 45
   m_StepOffset: 0.25
   m_SkinWidth: 0.0001
@@ -73,7 +73,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdf27f2ee0f68a94580a0a862d6c3e9b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  player: {fileID: 0}
   controller: {fileID: 7837650515227380864}
   animator: {fileID: 6294809332798913444}
   networkAnimator: {fileID: 7191192279263046336}
@@ -87,8 +86,11 @@ MonoBehaviour:
     maximumXFirstPerson: 90
     minimumXFirstPerson: -90
     maximumXThirdPerson: 60
-    minimumXThirdPerson: 0
+    minimumXThirdPerson: -30
     freezeModelRotation: 0
+  jogSpeed: 2.5
+  runSpeed: 5
+  jumpHeight: 1
   smoothFactor: 0.2
   speedMultiplier: 1
   jumpHeightMultiplier: 1
@@ -107,7 +109,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
-  player: {fileID: 1664009907526994776}
+  interactionDistance: 5
+  freezeHoldingTime: 2
+  freezingTime: 3
   interactableObjects:
     serializedVersion: 2
     m_Bits: 512
@@ -126,8 +130,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   syncMode: 0
-  syncInterval: 0.1
-  player: {fileID: 0}
+  syncInterval: 0.01
+  shotDistance: 25
+  damage: 25
+  fireRate: 60
+  magazineCapacity: 4
+  reloadTime: 2.5
 --- !u!114 &1664009907526994776
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -145,36 +153,16 @@ MonoBehaviour:
   controller: {fileID: 7722692716146964897}
   transformation: {fileID: 4727609327375919313}
   catching: {fileID: 1706263862607763374}
-  gameSettings:
-    maxWaitingTime: 30
-    freezeTime: 10
-    hideTime: 60
-    seekTime: 300
-    endingTime: 30
-    seekersToHidersRelation: 0.25
-    controllerSettings:
-      jogSpeed: 2.5
-      runSpeed: 5
-      jumpHeight: 1
-    healthSettings:
-      defaultHealthAmount: 100
-      regenerationSpeed: 0.1
-      regenerationDelay: 5
-    hiderSettings:
-      interactionDistance: 5
-      freezeHoldingTime: 2
-      freezingTime: 3
-    seekerSettings:
-      damage: 25
-      fireRate: 60
-      magazineCapacity: 4
-      reloadTime: 2.5
+  userInterface: {fileID: 7058570166395294058, guid: 7e26d61c7049d3d42b7a46620368dcdf,
+    type: 3}
   disableOnDeath: []
+  maxHealthAmount: 100
+  regenerationSpeed: 0.1
+  regenerationDelay: 5
   propMask:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1024
   role: 0
-  healthAmount: 0
 --- !u!114 &2129284956287590308
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -192,16 +180,23 @@ MonoBehaviour:
   player: {fileID: 1664009907526994776}
   UIPrefab: {fileID: 7058570166395294065, guid: 7e26d61c7049d3d42b7a46620368dcdf,
     type: 3}
-  componentsToEnable:
+  componentsToDisable:
   - {fileID: 7722692716146964897}
   - {fileID: 6747565804293045577}
-  - {fileID: 4727609327375919313}
-  - {fileID: 1706263862607763374}
+  - {fileID: 959224129974555084}
   controller: {fileID: 7837650515227380864}
   seekerModel: {fileID: 1119986346287998157}
   firstPersonModelLayer:
     serializedVersion: 2
     m_Bits: 256
+--- !u!81 &6747565804293045577
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 125477385085476026}
+  m_Enabled: 0
 --- !u!114 &3993366079011660372
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -217,7 +212,8 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.01
   compressRotation: 0
---- !u!114 &3538617589263873450
+  clientAuthority: 0
+--- !u!114 &1858836160045844397
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -232,6 +228,7 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.01
   compressRotation: 0
+  clientAuthority: 0
   target: {fileID: 3652501859440810247}
 --- !u!114 &7191192279263046336
 MonoBehaviour:
@@ -264,14 +261,6 @@ MonoBehaviour:
   serverOnly: 0
   m_AssetId: 
   m_SceneId: 0
---- !u!81 &6747565804293045577
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 125477385085476026}
-  m_Enabled: 0
 --- !u!1 &2717603452456318262
 GameObject:
   m_ObjectHideFlags: 0
@@ -310,10 +299,20 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 7128905188886796644}
     m_Modifications:
+    - target: {fileID: 642559454714351730, guid: fe80602c35758604ca2836bdda5c977b,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 851492868163018388, guid: fe80602c35758604ca2836bdda5c977b,
         type: 3}
       propertyPath: m_Name
       value: FirstPersonCamera
+      objectReference: {fileID: 0}
+    - target: {fileID: 851492868163018388, guid: fe80602c35758604ca2836bdda5c977b,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3969155879154014393, guid: fe80602c35758604ca2836bdda5c977b,
         type: 3}
@@ -375,6 +374,12 @@ PrefabInstance:
 --- !u!4 &3652501859440810247 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3969155879154014393, guid: fe80602c35758604ca2836bdda5c977b,
+    type: 3}
+  m_PrefabInstance: {fileID: 406745810996068798}
+  m_PrefabAsset: {fileID: 0}
+--- !u!20 &959224129974555084 stripped
+Camera:
+  m_CorrespondingSourceObject: {fileID: 642559454714351730, guid: fe80602c35758604ca2836bdda5c977b,
     type: 3}
   m_PrefabInstance: {fileID: 406745810996068798}
   m_PrefabAsset: {fileID: 0}

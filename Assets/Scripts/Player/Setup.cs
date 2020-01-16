@@ -4,6 +4,7 @@ using Scripts.Management.Network;
 using Scripts.UI;
 
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Scripts.PlayerScripts
 {
@@ -17,9 +18,7 @@ namespace Scripts.PlayerScripts
         private                  UserInterface userInterface;
 
         [Header("Components Management")]
-        [SerializeField] private UnityEngine.Behaviour[] componentsToEnable;
-
-        [SerializeField] private CharacterController controller;
+        [SerializeField] private UnityEngine.Behaviour[] componentsToDisable;
 
         [SerializeField] private GameObject seekerModel;
 
@@ -29,8 +28,7 @@ namespace Scripts.PlayerScripts
         {
             base.OnStartLocalPlayer();
 
-            Utility.ToggleComponents(ref componentsToEnable, true);
-            controller.enabled = true;
+            Utility.ToggleComponents(ref componentsToDisable, true);
 
             Utility.SetLayerRecursively(seekerModel, Utility.LayerMaskToLayer(firstPersonModelLayer));
 
@@ -40,31 +38,36 @@ namespace Scripts.PlayerScripts
             userInterface = UIInstance.GetComponent<UserInterface>();
 
             player.Setup(userInterface);
-            CmdSetName(name);
+
+            CmdRegisterPlayer(netId);
         }
 
         public override void OnStartClient()
         {
             base.OnStartClient();
 
-            uint id = GetComponent<NetworkIdentity>().netId;
+            name = netId.ToString();
+        }
 
-            name = id.ToString();
+        private void OnDestroy()
+        {
+            if (isServer)
+                ServerManager.UnregisterPlayer(netId);
 
-            ServerManager.RegisterPlayer(id, player);
+            if (isLocalPlayer)
+            {
+                Destroy(UIInstance);
+
+                SceneManager.LoadSceneAsync(ServerManager.singleton.RoomScene);
+            }
         }
 
         [Command]
-        private void CmdSetName(string name) => gameObject.name = name;
-
-        public void OnDisable()
+        private void CmdRegisterPlayer(uint id)
         {
-            ServerManager.UnregisterPlayer(netId, player.role);
+            ServerManager.RegisterPlayer(id, player);
 
-            userInterface.UpdateStats();
-
-            if (isLocalPlayer)
-                ServerManager.Singleton.ToggleSceneCamera(true);
+            gameObject.name = id.ToString();
         }
     }
 }

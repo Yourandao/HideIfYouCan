@@ -2,12 +2,11 @@
 {
     public enum GameState
     {
-        NotStarted,
+        None = -1,
         Waiting,
         FreezeTime,
         HideTime,
         SeekTime,
-        Ending,
-        Finished
+        Ending
     }
 }

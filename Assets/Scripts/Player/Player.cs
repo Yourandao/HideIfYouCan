@@ -1,10 +1,6 @@
-﻿using Assets.Scripts.Player.Settings;
+﻿using Mirror;
 
-using Mirror;
-
-using Scripts.Components;
-using Scripts.Management.Game;
-using Scripts.Management.Network;
+using Scripts.Exceptions;
 using Scripts.PlayerScripts.Behaviour;
 using Scripts.PlayerScripts.Control;
 using Scripts.UI;
@@ -25,13 +21,17 @@ namespace Scripts.PlayerScripts
 
         public Catching catching;
 
-        private UserInterface userInterface;
+        [HideInInspector] public UserInterface userInterface;
 
         [SerializeField] private UnityEngine.Behaviour[] disableOnDeath;
 
-        [HideInInspector] public GameSettings gameSettings;
+        [Header("Settings")]
+        [SerializeField] private float maxHealthAmount = 100f;
 
-        private HealthSettings settings;
+        [SerializeField]
+        [Range(.01f, 1f)] private float regenerationSpeed = .1f;
+
+        [SerializeField] private float regenerationDelay = 5f;
 
         [SyncVar] private float currentHealth;
 
@@ -43,48 +43,27 @@ namespace Scripts.PlayerScripts
         [HideInInspector]
         [SyncVar] public Role role;
 
-        [HideInInspector]
-        [SyncVar] public float healthAmount;
-
         private void Start()
         {
-            controller.player     = this;
-            transformation.player = this;
-            catching.player       = this;
-
-            gameSettings = ServerManager.Singleton.gameManager.gameSettings;
-            settings     = gameSettings.healthSettings;
-
-            currentHealth = settings.maxHealthAmount;
+            currentHealth = maxHealthAmount;
         }
 
         public void Setup(UserInterface userInterface)
         {
-            this.userInterface = userInterface;
-
+            this.userInterface        = userInterface;
             this.userInterface.player = this;
-            this.userInterface.UpdateStats();
 
-            ServerManager.Singleton.ToggleSceneCamera(false);
+            this.userInterface.UpdateRole(role);
 
-            CmdSetup();
-        }
-
-        [Command]
-        private void CmdSetup() => RpcSetup();
-
-        [ClientRpc]
-        private void RpcSetup()
-        {
-            if (isLocalPlayer)
-            {
-                if (role != Role.Hider)
-                    transformation.enabled = false;
-            }
+            catching.enabled       = false;
+            transformation.enabled = false;
         }
 
         private void Update()
         {
+            if (!isLocalPlayer)
+                return;
+
             if (Input.GetButtonDown("Cancel"))
             {
                 Paused = !Paused;
@@ -97,15 +76,32 @@ namespace Scripts.PlayerScripts
         [ClientRpc]
         public void RpcStartGame()
         {
-            ServerManager.Singleton.ToggleSceneCamera(false);
-
             controller.freezed = false;
+
+            if (isLocalPlayer)
+            {
+                switch (role)
+                {
+                    case Role.Seeker:
+                        catching.enabled = true;
+
+                        break;
+                    case Role.Hider:
+                        transformation.enabled = true;
+
+                        break;
+
+                    default: throw new UnhandledRoleException(role);
+                }
+            }
         }
 
         [ClientRpc]
         public void RpcStopGame()
         {
             controller.SetStop(true);
+            
+            // TODO: Change UI with game ending
         }
 
         [ClientRpc]
@@ -114,9 +110,9 @@ namespace Scripts.PlayerScripts
             if (role != Role.Hider)
                 return;
 
-            healthAmount -= amount;
+            currentHealth -= amount;
 
-            if (healthAmount <= 0f)
+            if (currentHealth <= 0f)
                 Die(source);
         }
 
@@ -124,27 +120,13 @@ namespace Scripts.PlayerScripts
         {
             Utility.ToggleComponents(ref disableOnDeath, false);
 
-            // TODO: Let player choose role (Seeker/Spectator)
+            CmdBecomeSpectator();
+
+            // TODO: Show source in kill feed
         }
 
         [Command]
-        public void CmdBecomeSeeker() => RpcBecomeSeeker();
-
-        [Command]
-        public void CmdBecomeSpectator() => RpcBecomeSpectator();
-
-        [ClientRpc]
-        private void RpcBecomeSeeker()
-        {
-            role = Role.Seeker;
-
-            if (isLocalPlayer)
-            {
-                transformation.enabled = false;
-
-                // TODO: Enable catch
-            }
-        }
+        private void CmdBecomeSpectator() => RpcBecomeSpectator();
 
         [ClientRpc]
         private void RpcBecomeSpectator() { }

@@ -2,10 +2,9 @@
 
 using Mirror;
 
-using Scripts.Components;
 using Scripts.Management.Network;
 using Scripts.PlayerScripts.Control;
-using Scripts.PlayerScripts.Settings;
+using Scripts.Props;
 
 using UnityEngine;
 
@@ -13,15 +12,17 @@ namespace Scripts.PlayerScripts.Behaviour
 {
     public sealed class Transformation : NetworkBehaviour
     {
-        [HideInInspector] public Player player;
+        private Player player;
 
         private PlayerController controller;
 
-        private HiderSettings settings;
+        [Header("Settings")]
+        [SerializeField] private float interactionDistance = 5f;
+
+        [SerializeField] private float freezeHoldingTime = 2f;
+        [SerializeField] private float freezingTime      = 3f;
 
         [SerializeField] private LayerMask interactableObjects;
-
-        private GameObject modelInstance;
 
         [Header("Prop Components")]
         [SerializeField] private GameObject seekerModel;
@@ -30,15 +31,17 @@ namespace Scripts.PlayerScripts.Behaviour
 
         private Prop prop;
 
+        private GameObject modelInstance;
+
         private float holdingTime;
 
         private bool freezed;
 
         private void Start()
         {
+            player = GetComponent<Player>();
+            
             controller = player.controller;
-
-            settings = player.gameSettings.hiderSettings;
         }
 
         private void Update()
@@ -49,7 +52,7 @@ namespace Scripts.PlayerScripts.Behaviour
             if (Input.GetButton("Interact"))
                 holdingTime += Time.deltaTime;
 
-            if (holdingTime >= settings.freezeHoldingTime && prop != null)
+            if (holdingTime >= freezeHoldingTime && prop != null)
             {
                 CmdSetFreeze(!freezed);
 
@@ -60,25 +63,24 @@ namespace Scripts.PlayerScripts.Behaviour
                 holdingTime = 0f;
 
                 if (!freezed)
-                    CmdTransform(controller.firstPersonCamera.position,
-                                 controller.firstPersonCamera.forward);
+                    CmdTransform();
             }
         }
 
         [Command]
-        private void CmdTransform(Vector3 from, Vector3 direction)
+        private void CmdTransform()
         {
-            if (Physics.Raycast(from, direction, settings.interactionDistance, interactableObjects))
-                ServerManager.GetPlayer(netId).transformation.RpcTransform(from, direction);
+            var from      = controller.firstPersonCamera.position;
+            var direction = controller.firstPersonCamera.forward;
+
+            if (Physics.Raycast(from, direction, out var hit, interactionDistance, interactableObjects))
+                ServerManager.GetPlayer(netId).transformation.RpcTransform(hit.collider.gameObject);
         }
 
         [ClientRpc]
-        private void RpcTransform(Vector3 from, Vector3 direction)
+        private void RpcTransform(GameObject propObject)
         {
-            Physics.Raycast(from, direction, out var hit,
-                            settings.interactionDistance, interactableObjects);
-
-            prop = hit.collider.GetComponent<PropHolder>().prop;
+            prop = propObject.GetComponent<PropHolder>().prop;
 
             seekerModel.SetActive(false);
 
@@ -107,14 +109,7 @@ namespace Scripts.PlayerScripts.Behaviour
                 RpcSetFreeze(false);
             else
             {
-                float time = 0f;
-
-                while (time < settings.freezingTime)
-                {
-                    yield return new WaitForFixedUpdate();
-
-                    time += Time.fixedDeltaTime;
-                }
+                yield return new WaitForSeconds(freezingTime);
 
                 RpcSetFreeze(true);
             }

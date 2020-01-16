@@ -4,8 +4,9 @@ using System.Linq;
 
 using Mirror;
 
-using Scripts.Components;
+using Scripts.Components.Network.Messages;
 using Scripts.Management.Network;
+using Scripts.PlayerScripts;
 
 using UnityEngine;
 
@@ -13,25 +14,51 @@ using Random = UnityEngine.Random;
 
 namespace Scripts.Management.Game
 {
-    public sealed class GameManager : MonoBehaviour
+    public sealed class GameManager : NetworkBehaviour
     {
-        public GameSettings gameSettings = new GameSettings();
+        public static GameManager singleton;
 
-        [Attributes.Scene]
-        public string[] gameplayScenes;
+        [NonSerialized] public GameSettings gameSettings;
 
         private GameState gameState;
 
         private float time;
 
+        public bool AllPlayersLoaded { private get; set; }
+
         private void Awake()
         {
-            gameState = GameState.NotStarted;
+            InitializeSingleton();
+
+            NetworkServer.RegisterHandler<GameStateRequest>(ReturnGameState);
+            NetworkServer.RegisterHandler<RoleCountersRequest>(ReturnRoleCounters);
+
+            gameState = GameState.None;
+        }
+
+        private void InitializeSingleton()
+        {
+            if (singleton != null && singleton == this)
+                return;
+
+            if (singleton != null)
+            {
+                Debug.LogWarning("Multiple GameManagers detected. Duplicate will be destroyed.");
+
+                Destroy(gameObject);
+
+                return;
+            }
+
+            singleton = this;
+
+            if (Application.isPlaying)
+                DontDestroyOnLoad(gameObject);
         }
 
         private void FixedUpdate()
         {
-            if (gameState == GameState.Finished || gameState == GameState.NotStarted)
+            if (gameState == GameState.None)
                 return;
 
             time += Time.fixedDeltaTime;
@@ -39,8 +66,7 @@ namespace Scripts.Management.Game
             switch (gameState)
             {
                 case GameState.Waiting:
-                    if (ServerManager.LoadedPlayers == ServerManager.PlayersCount ||
-                        time >= gameSettings.maxWaitingTime)
+                    if (AllPlayersLoaded || time >= gameSettings.timeSettings.maxWaitingTime)
                     {
                         gameState = GameState.FreezeTime;
                         time      = 0f;
@@ -51,7 +77,7 @@ namespace Scripts.Management.Game
                     break;
 
                 case GameState.FreezeTime:
-                    if (time >= gameSettings.freezeTime)
+                    if (time >= gameSettings.timeSettings.freezeTime)
                     {
                         foreach (var player in ServerManager
                                                .GetAllPlayers()
@@ -68,7 +94,7 @@ namespace Scripts.Management.Game
 
                     break;
                 case GameState.HideTime:
-                    if (time >= gameSettings.hideTime)
+                    if (time >= gameSettings.timeSettings.hideTime)
                     {
                         foreach (var player in ServerManager
                                                .GetAllPlayers()
@@ -85,7 +111,7 @@ namespace Scripts.Management.Game
 
                     break;
                 case GameState.SeekTime:
-                    if (time >= gameSettings.seekTime)
+                    if (time >= gameSettings.timeSettings.seekTime)
                     {
                         foreach (var player in ServerManager.GetAllPlayers())
                             player.RpcStopGame();
@@ -93,22 +119,37 @@ namespace Scripts.Management.Game
                         gameState = GameState.Ending;
                         time      = 0f;
 
-                        Debug.Log("Round ended");
+                        Debug.Log("Game over");
                     }
 
                     break;
                 case GameState.Ending:
-                    if (time >= gameSettings.endingTime)
+                    if (time >= gameSettings.timeSettings.endingTime)
                     {
-                        int sceneIndex = Random.Range(0, gameplayScenes.Length);
+                        EndGame();
 
-                        NetworkManager.singleton.ServerChangeScene(gameplayScenes[sceneIndex]);
-
-                        gameState = GameState.FreezeTime;
+                        gameState = GameState.None;
+                        time = 0f;
                     }
 
                     break;
             }
+        }
+
+        public void StartGame()
+        {
+            AssignRoles(ServerManager.singleton.roomSlots
+                                     .Select(r => r.GetComponent<RoomPlayer>())
+                                     .ToArray());
+
+            gameState = GameState.Waiting;
+
+            Debug.Log("Waiting phase");
+        }
+
+        public void EndGame()
+        {
+            ServerManager.singleton.ServerChangeScene(ServerManager.singleton.RoomScene);
         }
 
         private void AssignRoles(IReadOnlyCollection<RoomPlayer> players)
@@ -131,46 +172,49 @@ namespace Scripts.Management.Game
                 player.Role = Role.Hider;
         }
 
-        public void StartGame()
+        private void ReturnGameState(NetworkConnection reciever, GameStateRequest request)
         {
-            gameState = GameState.Waiting;
-
-            AssignRoles(ServerManager.Singleton.roomSlots
-                                     .Select(r => r.GetComponent<RoomPlayer>())
-                                     .ToArray());
-
-            Debug.Log("Waiting phase");
-        }
-
-        public (GameState, float) GetState()
-        {
-            var value = (gameState, default(float));
+            var response = new GameStateResponse { currentState = gameState };
 
             switch (gameState)
             {
                 case GameState.Waiting:
-                    value.Item2 = gameSettings.maxWaitingTime - time;
+                    response.remainingTime = gameSettings.timeSettings.maxWaitingTime - time;
 
                     break;
                 case GameState.FreezeTime:
-                    value.Item2 = gameSettings.freezeTime - time;
+                    response.remainingTime = gameSettings.timeSettings.freezeTime - time;
 
                     break;
                 case GameState.HideTime:
-                    value.Item2 = gameSettings.hideTime - time;
+                    response.remainingTime = gameSettings.timeSettings.hideTime - time;
 
                     break;
                 case GameState.SeekTime:
-                    value.Item2 = gameSettings.seekTime - time;
+                    response.remainingTime = gameSettings.timeSettings.seekTime - time;
 
                     break;
                 case GameState.Ending:
-                    value.Item2 = gameSettings.endingTime - time;
+                    response.remainingTime = gameSettings.timeSettings.endingTime - time;
 
                     break;
             }
 
-            return value;
+            reciever.Send(response);
+        }
+
+        private void ReturnRoleCounters(NetworkConnection reciever, RoleCountersRequest request)
+        {
+            var players = ServerManager.GetAllPlayers().ToList();
+
+            var response = new RoleCountersResponse
+            {
+                seekersCount    = players.Count(p => p.role == Role.Seeker),
+                hidersCount     = players.Count(p => p.role == Role.Hider),
+                spectatorsCount = players.Count(p => p.role == Role.Spectator)
+            };
+
+            reciever.Send(response);
         }
     }
 }
