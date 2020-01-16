@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 81196cd75a1dd044992dc236405c5e30, type: 3}
   m_Name: Capsule
   m_EditorClassIdentifier: 
-  speedMultiplier: 1
-  jumpHeightMultiplier: 1
+  speedMultiplier: 0.9
+  jumpHeightMultiplier: 0.9
   prefab: {fileID: 493652993927619120, guid: cb678710ca3db0147aa749a9f96c49be, type: 3}
