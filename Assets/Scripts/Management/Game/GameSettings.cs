@@ -1,22 +1,15 @@
-﻿using UnityEngine;
+﻿using System;
+
+using UnityEngine;
 
 namespace Scripts.Management.Game
 {
-    [System.Serializable]
+    [Serializable]
     public sealed class GameSettings
     {
-        [Header("Time Settings")]
-        public float maxWaitingTime = 30f;
-
-        public float freezeTime = 10f;
-
-        public float hideTime = 60f;
-
-        public float seekTime = 300f;
-
-        public float endingTime = 30f;
+        public TimeSettings timeSettings = new TimeSettings();
 
         [Header("Roles Settings")]
-        [Range(.1f, 1f)] public float seekersToHidersRelation = .25f;
+        [Range(.0625f, 0.9375f)] public float seekersToHidersRelation = .25f;
     }
 }
