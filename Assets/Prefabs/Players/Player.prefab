@@ -86,6 +86,9 @@ MonoBehaviour:
     minimumXFirstPerson: -90
     maximumXThirdPerson: 60
     minimumXThirdPerson: -30
+    minFov: 50
+    maxFov: 100
+    mouseWheelSensivity: 0.01
     freezeModelRotation: 0
   jogSpeed: 2.5
   runSpeed: 5
@@ -160,6 +163,7 @@ MonoBehaviour:
   maxHealthAmount: 100
   regenerationSpeed: 0.1
   regenerationDelay: 5
+  cameraLerpFactor: 0.25
   propMask:
     serializedVersion: 2
     m_Bits: 1024

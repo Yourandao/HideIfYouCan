@@ -21,6 +21,11 @@ namespace Scripts.PlayerScripts.Control
         [SerializeField] private float minimumXThirdPerson = -15f;
         // TODO: Count it automatically
 
+        [SerializeField] private float minFov = 10f;
+        [SerializeField] private float maxFov = 20f;
+
+        [SerializeField] private float mouseWheelSensivity = .1f;
+
         private Transform player;
         private Transform firstPersonCamera;
         private Transform thirdPersonCamera;
@@ -34,6 +39,8 @@ namespace Scripts.PlayerScripts.Control
 
         private float xRotation;
         private float yRotation;
+
+        private float fov;
 
         [HideInInspector] public bool freezeModelRotation;
 
@@ -57,6 +64,8 @@ namespace Scripts.PlayerScripts.Control
         {
             mouseX = Input.GetAxisRaw("Mouse X") * xSensitivity;
             mouseY = Input.GetAxisRaw("Mouse Y") * ySensitivity;
+
+            fov += Input.GetAxisRaw("MouseWheel") * mouseWheelSensivity;
         }
 
         public void Rotate()
@@ -73,7 +82,10 @@ namespace Scripts.PlayerScripts.Control
             if (firstPersonPerspective)
                 return;
 
+            fov = Mathf.Clamp(fov, minFov, maxFov);
+
             thirdPersonCamera.LookAt(target);
+            thirdPersonCamera.GetComponent<Camera>().fieldOfView = fov;
 
             target.rotation =
                 Quaternion.Euler(Mathf.Clamp(xRotation, minimumXThirdPerson, maximumXThirdPerson), yRotation, 0f);
