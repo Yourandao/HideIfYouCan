@@ -24,7 +24,7 @@ namespace Scripts.PlayerScripts.Control
         [SerializeField] private float minFov = 10f;
         [SerializeField] private float maxFov = 20f;
 
-        [SerializeField] private float mouseWheelSensivity = .1f;
+        [SerializeField] private float mouseWheelSensivity = .01f;
 
         private Transform player;
         private Transform firstPersonCamera;
