@@ -7,7 +7,6 @@ using Scripts.Management.Game;
 using Scripts.PlayerScripts;
 
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace Scripts.Management.Network
 {
@@ -29,7 +28,7 @@ namespace Scripts.Management.Network
         {
             base.Awake();
 
-            cameras.Clear();
+            _cameras.Clear();
 
             InitializeSingleton();
         }
@@ -179,21 +178,15 @@ namespace Scripts.Management.Network
 
         #endregion
 
-        #region Cameras Management
+        #region Cameras management
 
-        private static List<Camera> cameras = new List<Camera>();
+        private static List<Camera> _cameras = new List<Camera>();
 
-        public static void RegisterCamera(Camera camera)
-        {
-            cameras.Add(camera);
-        }
+        public static void RegisterCamera(Camera camera) => _cameras.Add(camera);
 
-        public static void UnregisterCamera(Camera camera)
-        {
-	        cameras.Remove(camera);
-        }
+        public static void UnregisterCamera(Camera camera) => _cameras.Remove(camera);
 
-        public static List<Camera> GetAllCameras() => cameras;
+        public static IEnumerable<Camera> GetAllCameras() => _cameras;
 
         #endregion
     }
