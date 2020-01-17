@@ -71,10 +71,11 @@ namespace Scripts.PlayerScripts.Control
         public void Rotate()
         {
             xRotation -= mouseY;
+            xRotation = Mathf.Clamp(xRotation, minimumXFirstPerson, maximumXFirstPerson);
+
             yRotation += mouseX;
 
-            firstPersonCamera.localRotation =
-                Quaternion.Euler(Mathf.Clamp(xRotation, minimumXFirstPerson, maximumXFirstPerson), 0f, 0f);
+            firstPersonCamera.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
 
             if (!freezeModelRotation)
                 player.rotation = Quaternion.Euler(0f, yRotation, 0f);
@@ -87,8 +88,7 @@ namespace Scripts.PlayerScripts.Control
             thirdPersonCamera.LookAt(target);
             thirdPersonCamera.GetComponent<Camera>().fieldOfView = fov;
 
-            target.rotation =
-                Quaternion.Euler(Mathf.Clamp(xRotation, minimumXThirdPerson, maximumXThirdPerson), yRotation, 0f);
+            target.rotation = Quaternion.Euler(xRotation, yRotation, 0f);
         }
     }
 }
