@@ -2,75 +2,89 @@
 
 using Mirror;
 
-using Scripts.Components;
 using Scripts.Exceptions;
 using Scripts.Management.Game;
 using Scripts.PlayerScripts;
 
 using UnityEngine;
-
-using Random = UnityEngine.Random;
+using UnityEngine.SceneManagement;
 
 namespace Scripts.Management.Network
 {
-    [RequireComponent(typeof(GameManager))]
     public sealed class ServerManager : NetworkRoomManager
     {
-        public static ServerManager Singleton { get; private set; }
+        public new static ServerManager singleton;
 
-        public GameManager gameManager;
+        [Attributes.Scene]
+        public string[] gameplayScenes;
 
-        private static List<Transform> _hiderSpawns  = new List<Transform>();
-        private static List<Transform> _seekerSpawns = new List<Transform>();
+        [SerializeField]  private GameObject gameManagerPrefab;
+        [HideInInspector] public  GameObject gameManagerInstance;
 
-        private static int _hiderSpawnsIndex;
-        private static int _seekerSpawnsIndex;
+        private GameManager gameManager;
 
-        private static Dictionary<uint, Player> _players = new Dictionary<uint, Player>();
-
-        public static int AllPlayers
-        {
-            get => _players.Count;
-        }
-
-        public static int LoadedPlayers { get; private set; }
-
-        #if UNITY_SERVERD
-        private bool isServerStarted;
-        #endif
+        [SerializeField] private GameSettings gameSettings = new GameSettings();
 
         public override void Awake()
         {
             base.Awake();
 
-            if (Singleton != null)
-                throw new MultiInstanceException(gameObject);
+            cameras.Clear();
 
-            Singleton = this;
-
-            #if UNITY_SERVER
-            if (isServerStarted)
-                return;
-
-            StartServer();
-
-            isServerStarted = true;
-
-            #endif
+            InitializeSingleton();
         }
 
-        public override void OnRoomStartServer()
+        private void InitializeSingleton()
         {
-            base.OnRoomStartServer();
+            if (singleton != null && singleton == this)
+                return;
 
-            _players.Clear();
+            if (singleton != null)
+            {
+                Debug.LogWarning("Multiple ServerManagers detected. Duplicate will be destroyed.");
+
+                Destroy(gameObject);
+
+                return;
+            }
+
+            singleton = this;
+
+            if (Application.isPlaying)
+                DontDestroyOnLoad(gameObject);
+        }
+
+        private void InitializeGameManager()
+        {
+            gameManagerInstance      = Instantiate(gameManagerPrefab);
+            gameManagerInstance.name = gameManagerPrefab.name;
+
+            gameManager              = GameManager.singleton;
+            gameManager.gameSettings = gameSettings;
+        }
+
+        #region Server management
+
+        private int loadedPlayers;
+
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            InitializeGameManager();
         }
 
         public override void OnRoomServerPlayersReady()
         {
-            int sceneIndex = Random.Range(0, gameManager.gameplayScenes.Length);
+            _players.Clear();
 
-            ServerChangeScene(gameManager.gameplayScenes[sceneIndex]);
+            _hiderSpawnsIndex  = 0;
+            _seekerSpawnsIndex = 0;
+
+            loadedPlayers = 0;
+
+            int sceneIndex = Random.Range(0, gameplayScenes.Length);
+            ServerChangeScene(gameplayScenes[sceneIndex]);
 
             gameManager.StartGame();
         }
@@ -86,27 +100,44 @@ namespace Scripts.Management.Network
 
             var spawn = GetSpawn(role);
 
-            gamePlayer.transform.position = spawn.position;
-            gamePlayer.transform.rotation = spawn.rotation;
+            gamePlayer.transform.position      = spawn.position;
+            gamePlayer.transform.localRotation = spawn.localRotation;
+
+            loadedPlayers++;
+
+            if (loadedPlayers == roomSlots.Count)
+                gameManager.AllPlayersLoaded = true;
 
             return true;
         }
 
-        public override void OnRoomServerSceneChanged(string sceneName)
+        public override void OnRoomServerDisconnect(NetworkConnection connection)
         {
-            base.OnRoomServerSceneChanged(sceneName);
+            base.OnRoomServerDisconnect(connection);
 
-            LoadedPlayers = 0;
+            if (_players.Count == 0 &&
+                SceneManager.GetActiveScene().name != RoomScene)
+            {
+                gameManager.EndGame();
+            }
         }
 
-        public override void OnRoomClientSceneChanged(NetworkConnection connection)
+        public override void OnStopServer()
         {
-            base.OnRoomClientSceneChanged(connection);
+            base.OnStopServer();
 
-            LoadedPlayers++;
+            Destroy(gameManagerInstance);
         }
+
+        #endregion
 
         #region Spawns management
+
+        private static List<Transform> _hiderSpawns  = new List<Transform>();
+        private static List<Transform> _seekerSpawns = new List<Transform>();
+
+        private static int _hiderSpawnsIndex;
+        private static int _seekerSpawnsIndex;
 
         public static void RegisterHiderSpawn(Transform transform) => _hiderSpawns.Add(transform);
 
@@ -145,15 +176,35 @@ namespace Scripts.Management.Network
 
         #endregion
 
-        #region Player management
+        #region Players management
+
+        static Dictionary<uint, Player> _players = new Dictionary<uint, Player>();
 
         public static void RegisterPlayer(uint id, Player player) => _players.Add(id, player);
 
-        public static void UnregisterPlayer(uint id, Role role) => _players.Remove(id);
+        public static void UnregisterPlayer(uint id) => _players.Remove(id);
 
         public static Player GetPlayer(uint id) => _players[id];
 
         public static IEnumerable<Player> GetAllPlayers() => _players.Values;
+
+        #endregion
+
+        #region Cameras Management
+
+        private static List<Camera> cameras = new List<Camera>();
+
+        public static void RegisterCamera(Camera camera)
+        {
+            cameras.Add(camera);
+        }
+
+        public static void UnregisterCamera(Camera camera)
+        {
+	        cameras.Remove(camera);
+        }
+
+        public static List<Camera> GetAllCameras() => cameras;
 
         #endregion
     }

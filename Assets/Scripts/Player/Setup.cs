@@ -1,8 +1,10 @@
 ﻿using Mirror;
 
 using Scripts.Management.Network;
+using Scripts.UI;
 
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Scripts.PlayerScripts
 {
@@ -18,18 +20,15 @@ namespace Scripts.PlayerScripts
         [Header("Components Management")]
         [SerializeField] private Behaviour[] componentsToEnable;
 
-        [SerializeField] private CharacterController controller;
-
         [SerializeField] private GameObject seekerModel;
 
-        [SerializeField] private LayerMask firstPersonModelLayer;
+        public LayerMask firstPersonModelLayer;
 
         public override void OnStartLocalPlayer()
         {
             base.OnStartLocalPlayer();
 
             Utility.ToggleComponents(ref componentsToEnable, true);
-            controller.enabled = true;
 
             Utility.SetLayerRecursively(seekerModel, Utility.LayerMaskToLayer(firstPersonModelLayer));
 
@@ -39,28 +38,42 @@ namespace Scripts.PlayerScripts
             userInterface = UIInstance.GetComponent<UserInterface>();
 
             player.Setup(userInterface);
-            CmdSetName(name);
+
+            CmdRegisterPlayer(netId);
         }
 
         public override void OnStartClient()
         {
-            base.OnStartClient();
+	        base.OnStartClient();
 
-            uint id = GetComponent<NetworkIdentity>().netId;
+            name = netId.ToString();
 
-            name = id.ToString();
+            if (player.role == Role.Seeker)
+				ServerManager.RegisterCamera(player.controller.firstPersonCamera.GetComponent<Camera>());
+        }
 
-            ServerManager.RegisterPlayer(id, player);
+        private void OnDestroy()
+        {
+            if (isServer)
+                ServerManager.UnregisterPlayer(netId);
+
+            if (player.role == Role.Seeker)
+				ServerManager.UnregisterCamera(player.controller.firstPersonCamera.GetComponent<Camera>());
+
+            if (isLocalPlayer)
+            {
+                Destroy(UIInstance);
+
+                SceneManager.LoadSceneAsync(ServerManager.singleton.RoomScene);
+            }
         }
 
         [Command]
-        private void CmdSetName(string name) => gameObject.name = name;
-
-        public void OnDisable()
+        private void CmdRegisterPlayer(uint id)
         {
-            ServerManager.UnregisterPlayer(netId, player.role);
+            ServerManager.RegisterPlayer(id, player);
 
-            userInterface.UpdateStats();
+            gameObject.name = id.ToString();
         }
     }
 }

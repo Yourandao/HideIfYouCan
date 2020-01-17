@@ -1,81 +1,114 @@
 ﻿using System;
-using System.Linq;
 
-using Scripts.Components;
-using Scripts.Management.Network;
+using Mirror;
+
+using Scripts.Components.Network.Messages;
+using Scripts.Management.Game;
 using Scripts.PlayerScripts;
 
 using UnityEngine;
 using UnityEngine.UI;
 
-[RequireComponent(typeof(AudioSource))]
-public class UserInterface : MonoBehaviour
+namespace Scripts.UI
 {
-    [Header("Sections")]
-    [SerializeField] private GameObject gameUI;
-
-    [SerializeField] private GameObject pauseUI;
-
-    [Header("Audio")]
-    [SerializeField] private AudioSource _buttonAudioSource;
-
-    [SerializeField] private AudioClip _buttonSound;
-
-    [Header("UI Components")]
-    [SerializeField] private Button resumeButton;
-
-    [SerializeField] private Button quitButton;
-
-    [SerializeField] private Text timeText;
-    [SerializeField] private Text roleText;
-    [SerializeField] private Text seekersText;
-    [SerializeField] private Text hidersText;
-    [SerializeField] private Text spectatorsText;
-
-    [HideInInspector] public Player player;
-
-    private bool paused;
-
-    private void Start()
+    [RequireComponent(typeof(AudioSource))]
+    public class UserInterface : MonoBehaviour
     {
-        _buttonAudioSource.clip = _buttonSound;
+        [Header("Sections")]
+        [SerializeField] private GameObject gameUI;
 
-        resumeButton.onClick.AddListener(() => _buttonAudioSource.PlayOneShot(_buttonSound));
-        quitButton.onClick.AddListener(() => _buttonAudioSource.PlayOneShot(_buttonSound));
-    }
+        [SerializeField] private GameObject pauseUI;
 
-    private void Update()
-    {
-        timeText.text = TimeSpan.FromSeconds(ServerManager.Singleton.gameManager.GetTime()).ToString(@"mm\:ss");
-    }
+        [Header("Audio")]
+        [SerializeField] private AudioSource audioSource;
 
-    public void UpdateStats()
-    {
-        var players = ServerManager.GetAllPlayers().ToList();
+        [SerializeField] private AudioClip buttonClickSound;
 
-        roleText.text = player.role.ToString();
+        [Header("UI Components")]
+        [SerializeField] private Button resumeButton;
 
-        int seekersCount    = players.Count(p => p.role == Role.Seeker);
-        int hidersCount     = players.Count(p => p.role == Role.Hider);
-        int spectatorsCount = players.Count(p => p.role == Role.Spectator);
+        [SerializeField] private Button quitButton;
+        [SerializeField] private Text   gameState;
+        [SerializeField] private Text   time;
+        [SerializeField] private Text   role;
+        [SerializeField] private Text   seekers;
+        [SerializeField] private Text   hiders;
+        [SerializeField] private Text   spectators;
 
-        seekersText.text    = $"Seekers: {seekersCount}";
-        hidersText.text     = $"Hiders: {hidersCount}";
-        spectatorsText.text = $"Spectators: {spectatorsCount}";
-    }
+        [HideInInspector] public Player player;
 
-    public void TogglePause()
-    {
-        paused = !paused;
+        [SerializeField] private int skipUpdates = 100;
 
-        player.controller.SetStop(paused);
+        private int skipped;
 
-        gameUI.SetActive(!paused);
-        pauseUI.SetActive(paused);
-    }
+        private bool paused;
 
-    public void Quit()
-    {
-        // TODO: Quit logic
+        private GameStateRequest    gameStateRequest;
+        private RoleCountersRequest roleCountersRequest;
+
+        private void Awake()
+        {
+            gameStateRequest    = new GameStateRequest();
+            roleCountersRequest = new RoleCountersRequest();
+
+            // TODO: Replace role counters with all players stats in future
+
+            NetworkClient.RegisterHandler<GameStateResponse>(CompileGameState);
+            NetworkClient.RegisterHandler<RoleCountersResponse>(UpdateRoleCounters);
+        }
+
+        private void Start()
+        {
+            audioSource.clip = buttonClickSound;
+
+            resumeButton.onClick.AddListener(() => audioSource.PlayOneShot(buttonClickSound));
+            quitButton.onClick.AddListener(() => audioSource.PlayOneShot(buttonClickSound));
+
+            NetworkClient.Send(gameStateRequest);
+            NetworkClient.Send(roleCountersRequest);
+        }
+
+        private void FixedUpdate()
+        {
+            NetworkClient.Send(gameStateRequest);
+
+            skipped++;
+
+            if (skipped == skipUpdates)
+            {
+                NetworkClient.Send(roleCountersRequest);
+
+                skipped = 0;
+            }
+        }
+
+        private void CompileGameState(NetworkConnection sender, GameStateResponse response)
+        {
+            if (response.currentState == GameState.Ending)
+                enabled = false;
+
+            gameState.text = response.currentState.ToString();
+            time.text      = TimeSpan.FromSeconds(response.remainingTime).ToString(@"mm\:ss");
+        }
+
+        private void UpdateRoleCounters(NetworkConnection sender, RoleCountersResponse response)
+        {
+            seekers.text    = $"Seekers: {response.seekersCount}";
+            hiders.text     = $"Hiders: {response.hidersCount}";
+            spectators.text = $"Spectators: {response.spectatorsCount}";
+        }
+
+        public void UpdateRole(Role newRole) => role.text = newRole.ToString();
+
+        public void TogglePause()
+        {
+            gameUI.SetActive(!player.Paused);
+            pauseUI.SetActive(player.Paused);
+        }
+
+        public void Quit()
+        {
+            // TODO: Quit logic
+        }
     }
 }
