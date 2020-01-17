@@ -109,17 +109,6 @@ namespace Scripts.Management.Network
             return true;
         }
 
-        public override void OnRoomServerDisconnect(NetworkConnection connection)
-        {
-            base.OnRoomServerDisconnect(connection);
-
-            if (_players.Count == 0 &&
-                SceneManager.GetActiveScene().name != RoomScene)
-            {
-                gameManager.EndGame();
-            }
-        }
-
         public override void OnStopServer()
         {
             base.OnStopServer();

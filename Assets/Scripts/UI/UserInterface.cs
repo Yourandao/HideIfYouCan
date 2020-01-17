@@ -28,9 +28,9 @@ namespace Scripts.UI
         [SerializeField] private Button resumeButton;
 
         [SerializeField] private Button quitButton;
-        [SerializeField] private Text   gameState;
-        [SerializeField] private Text   time;
-        [SerializeField] private Text   role;
+        public                   Text   gameState;
+        public                   Text   time;
+        public                   Text   role;
         [SerializeField] private Text   seekers;
         [SerializeField] private Text   hiders;
         [SerializeField] private Text   spectators;
