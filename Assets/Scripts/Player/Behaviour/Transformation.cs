@@ -104,7 +104,9 @@ namespace Scripts.PlayerScripts.PlayerBehaviour
             controller.speedMultiplier      = prop.speedMultiplier;
             controller.jumpHeightMultiplier = prop.jumpHeightMultiplier;
 
-            controller.SetSize(propObject.GetComponent<MeshRenderer>().bounds.size);
+            var size = propObject.GetComponent<MeshRenderer>().bounds.size;
+
+            controller.SetSize(new Vector3(size.x / 2, size.y, size.z / 2));
         }
 
         [Command]
