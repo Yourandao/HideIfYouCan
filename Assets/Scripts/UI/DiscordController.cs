@@ -59,6 +59,6 @@ namespace Scripts.UI
         }
 
         private static void ActivityActionCallback(Result result) =>
-            Debug.Log($"Discrod activity response: {result.ToString()}");
+            Debug.Log($"Discord activity response: {result.ToString()}");
     }
 }
