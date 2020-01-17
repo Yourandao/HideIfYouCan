@@ -18,11 +18,11 @@ namespace Scripts.PlayerScripts
         private                  UserInterface userInterface;
 
         [Header("Components Management")]
-        [SerializeField] private UnityEngine.Behaviour[] componentsToEnable;
+        [SerializeField] private Behaviour[] componentsToEnable;
 
         [SerializeField] private GameObject seekerModel;
 
-        [SerializeField] private LayerMask firstPersonModelLayer;
+        public LayerMask firstPersonModelLayer;
 
         public override void OnStartLocalPlayer()
         {
@@ -44,15 +44,21 @@ namespace Scripts.PlayerScripts
 
         public override void OnStartClient()
         {
-            base.OnStartClient();
+	        base.OnStartClient();
 
             name = netId.ToString();
+
+            if (player.role == Role.Seeker)
+				ServerManager.RegisterCamera(player.controller.firstPersonCamera.GetComponent<Camera>());
         }
 
         private void OnDestroy()
         {
             if (isServer)
                 ServerManager.UnregisterPlayer(netId);
+
+            if (player.role == Role.Seeker)
+				ServerManager.UnregisterCamera(player.controller.firstPersonCamera.GetComponent<Camera>());
 
             if (isLocalPlayer)
             {

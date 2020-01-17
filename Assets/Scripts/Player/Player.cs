@@ -3,6 +3,8 @@ using System.Linq;
 
 using Mirror;
 
+using Mono.CecilX.Cil;
+
 using Scripts.Exceptions;
 using Scripts.Management.Network;
 using Scripts.PlayerScripts.PlayerBehaviour;
@@ -39,7 +41,7 @@ namespace Scripts.PlayerScripts
 
 		[SyncVar] private float currentHealth;
 
-		private Transform[] playerCameras;
+		private List<Camera> playerCameras;
 
 		private int spectatingIndex = 0;
 
@@ -80,14 +82,21 @@ namespace Scripts.PlayerScripts
 
 			if (role == Role.Spectator && playerCameras != null)
 			{
-				var currentPosition = controller.firstPersonCamera.position;
-				var newPosition = playerCameras[spectatingIndex % playerCameras.Length].position;
+				var currentCamera = playerCameras[spectatingIndex];
 
-				controller.firstPersonCamera.position =
-					Vector3.Lerp(currentPosition, newPosition, cameraLerpFactor);
-				
+				if (!currentCamera.enabled)
+				{
+					var model = currentCamera.GetComponentInParent<Transformation>().modelHolder.gameObject;
+					Utility.SetLayerRecursively(model, Utility.LayerMaskToLayer(currentCamera.GetComponentInParent<Setup>().firstPersonModelLayer));
+
+					currentCamera.enabled = true;
+				}
+
 				if (Input.GetButtonDown("Attack"))
-					spectatingIndex++;
+				{
+					playerCameras[spectatingIndex].enabled = false;
+					spectatingIndex = ++spectatingIndex % playerCameras.Count;
+				}
 			}
 
 			if (Input.GetButtonDown("Cancel"))
@@ -137,6 +146,8 @@ namespace Scripts.PlayerScripts
 
 			currentHealth -= amount;
 
+			Debug.Log(currentHealth);
+
 			TargetOnDamageTaken(connectionToClient);
 
 			if (currentHealth <= 0f)
@@ -160,7 +171,7 @@ namespace Scripts.PlayerScripts
 
 			RpcOnDeath();
 
-			BecomeSpectator();
+			TargetBecomeSpectator(connectionToClient);
 
 			// TODO: Show source in kill feed
 
@@ -170,7 +181,7 @@ namespace Scripts.PlayerScripts
 		[ClientRpc]
 		private void RpcOnDeath()
 		{
-			transformation.CurrentModel.SetActive(false);
+			transformation.modelHolder.gameObject.SetActive(false);
 
 			if (isLocalPlayer)
 				Utility.ToggleComponents(ref disableOnDeath, false);
@@ -178,21 +189,12 @@ namespace Scripts.PlayerScripts
 			// TODO: Some local player actions
 		}
 
-		private void BecomeSpectator()
-		{
-			var cameraGameObjects = ServerManager.GetAllPlayers()
-			                                     .Where(player => player.role == Role.Seeker)
-			                                     .Select(player => player.GetComponent<NetworkTransformChild>().target);
-
-			TargetBecomeSpectator(connectionToClient, cameraGameObjects);
-		}
-
 		[TargetRpc]
-		private void TargetBecomeSpectator(NetworkConnection connection, IEnumerable<Transform> cameraGameObjects)
+		private void TargetBecomeSpectator(NetworkConnection connection)
 		{
-			var cameras = cameraGameObjects.ToArray();
+			var cameras = ServerManager.GetAllCameras();
 
-			Debug.Log(cameras.Length);
+			Debug.Log(cameras);
 
 			// TODO: Spectate for alive players
 			playerCameras = cameras;

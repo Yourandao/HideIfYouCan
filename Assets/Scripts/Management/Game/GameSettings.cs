@@ -10,6 +10,6 @@ namespace Scripts.Management.Game
         public TimeSettings timeSettings = new TimeSettings();
 
         [Header("Roles Settings")]
-        [Range(.0625f, 0.9375f)] public float seekersToHidersRelation = .25f;
+        [Range(.0625f, 1f)] public float seekersToHidersRelation = .25f;
     }
 }

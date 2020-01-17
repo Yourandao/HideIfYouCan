@@ -29,6 +29,8 @@ namespace Scripts.Management.Network
         {
             base.Awake();
 
+            cameras.Clear();
+
             InitializeSingleton();
         }
 
@@ -185,6 +187,24 @@ namespace Scripts.Management.Network
         public static Player GetPlayer(uint id) => _players[id];
 
         public static IEnumerable<Player> GetAllPlayers() => _players.Values;
+
+        #endregion
+
+        #region Cameras Management
+
+        private static List<Camera> cameras = new List<Camera>();
+
+        public static void RegisterCamera(Camera camera)
+        {
+            cameras.Add(camera);
+        }
+
+        public static void UnregisterCamera(Camera camera)
+        {
+	        cameras.Remove(camera);
+        }
+
+        public static List<Camera> GetAllCameras() => cameras;
 
         #endregion
     }

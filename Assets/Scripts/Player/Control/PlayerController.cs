@@ -197,6 +197,12 @@ namespace Scripts.PlayerScripts.Control
 
         private void OnEnable() => controller.enabled = true;
 
-        private void OnDisable() => controller.enabled = false;
+        private void OnDisable()
+        {
+	        controller.enabled = false;
+
+            Destroy(thirdPersonCameraInstance);
+            Destroy(cameraTargetInstance);
+        }
     }
 }

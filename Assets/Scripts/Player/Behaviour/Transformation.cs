@@ -26,13 +26,12 @@ namespace Scripts.PlayerScripts.PlayerBehaviour
         [Header("Prop Components")]
         [SerializeField] private GameObject seekerModel;
 
-        [SerializeField] private Transform modelHolder;
+        public Transform modelHolder;
 
         private Prop prop;
 
         private GameObject modelInstance;
 
-        public GameObject CurrentModel => modelInstance == null ? modelInstance : seekerModel;
 
         private float holdingTime;
 

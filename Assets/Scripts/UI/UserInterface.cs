@@ -102,7 +102,7 @@ namespace Scripts.UI
 
         public void TogglePause()
         {
-            gameUI.SetActive(player.Paused);
+            gameUI.SetActive(!player.Paused);
             pauseUI.SetActive(player.Paused);
         }
 
