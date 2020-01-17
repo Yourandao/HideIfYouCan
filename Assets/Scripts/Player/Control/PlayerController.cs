@@ -59,6 +59,8 @@ namespace Scripts.PlayerScripts.Control
 
             mouseLook.Setup(transform, firstPersonCamera);
 
+            Cursor.lockState = CursorLockMode.Locked;
+
             ResetAnimator();
 
             freezed = true;

@@ -80,8 +80,6 @@ namespace Scripts.PlayerScripts
 			if (!isLocalPlayer)
 				return;
 
-			Cursor.lockState = CursorLockMode.Locked;
-
 			if (role == Role.Spectator && playerCameras != null)
 			{
 				var currentCamera = playerCameras[spectatingIndex];
