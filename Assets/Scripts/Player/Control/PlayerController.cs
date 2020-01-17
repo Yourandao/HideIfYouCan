@@ -147,7 +147,6 @@ namespace Scripts.PlayerScripts.Control
         public void SwitchToTPP(Transform model)
         {
             firstPersonCamera.gameObject.SetActive(false);
-            thirdPersonCameraPrefab.gameObject.SetActive(true);
 
             ResetAnimator();
             networkAnimator.enabled = false;

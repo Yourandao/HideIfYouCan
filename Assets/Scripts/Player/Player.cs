@@ -1,205 +1,194 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 
 using Mirror;
 
-using Mono.CecilX.Cil;
-
 using Scripts.Exceptions;
 using Scripts.Management.Network;
-using Scripts.PlayerScripts.PlayerBehaviour;
 using Scripts.PlayerScripts.Control;
+using Scripts.PlayerScripts.PlayerBehaviour;
 using Scripts.UI;
 
 using UnityEngine;
 
 namespace Scripts.PlayerScripts
 {
-	[RequireComponent(typeof(PlayerController))]
-	[RequireComponent(typeof(Transformation))]
-	[RequireComponent(typeof(Catching))]
-	public sealed class Player : NetworkBehaviour
-	{
-		[Header("Components")]
-		public PlayerController controller;
+    [RequireComponent(typeof(PlayerController))]
+    [RequireComponent(typeof(Transformation))]
+    [RequireComponent(typeof(Catching))]
+    public sealed class Player : NetworkBehaviour
+    {
+        [Header("Components")]
+        public PlayerController controller;
 
-		public Transformation transformation;
+        public Transformation transformation;
 
-		public Catching catching;
+        public Catching catching;
 
-		[HideInInspector] public UserInterface userInterface;
+        [HideInInspector] public UserInterface userInterface;
 
-		[SerializeField] private Behaviour[] disableOnDeath;
+        [SerializeField] private Behaviour[] disableOnDeath;
 
-		[Header("Settings")]
-		[SerializeField] private float maxHealthAmount = 100f;
+        [Header("Settings")]
+        [SerializeField] private float maxHealthAmount = 100f;
 
-		[SerializeField]
-		[Range(.01f, 1f)] private float regenerationSpeed = .1f;
+        [SerializeField]
+        [Range(.01f, 1f)] private float regenerationSpeed = .1f;
 
-		[SerializeField] private float regenerationDelay = 5f;
+        [SerializeField] private float regenerationDelay = 5f;
 
-		[SyncVar] private float currentHealth;
+        [SyncVar] private float currentHealth;
 
-		private List<Camera> playerCameras;
+        [Space]
+        public LayerMask propMask;
 
-		private int spectatingIndex = 0;
+        public LayerMask firstPersonModelLayer;
 
-		[Range(0.0f, 1.0f)]
-		[SerializeField] private float cameraLerpFactor = .25f;
+        [HideInInspector]
+        [SyncVar] public Role role;
+        
+        private Camera[] observableCameras;
+        private int      spectatingIndex;
 
-		public bool Paused { get; private set; }
+        private GameObject observableModel;
 
-		[Space]
-		public LayerMask propMask;
+        [Header("FX")]
+        [SerializeField] private GameObject deathEffect;
+        [SerializeField] private float deathEffectDuration = 3f;
+        
+        public bool Paused { get; private set; }
 
-		[HideInInspector]
-		[SyncVar] public Role role;
+        private void Start()
+        {
+            if (isServer)
+                currentHealth = maxHealthAmount;
 
-		private void Start()
-		{
-			if (isServer)
-				currentHealth = maxHealthAmount;
+            transformation.Setup();
+            catching.Setup();
+        }
 
-			transformation.Setup();
-			catching.Setup();
-		}
+        public void Setup(UserInterface userInterface)
+        {
+            this.userInterface        = userInterface;
+            this.userInterface.player = this;
 
-		public void Setup(UserInterface userInterface)
-		{
-			this.userInterface        = userInterface;
-			this.userInterface.player = this;
+            this.userInterface.UpdateRole(role);
 
-			this.userInterface.UpdateRole(role);
+            controller.Setup();
+        }
 
-			controller.Setup();
-		}
+        private void Update()
+        {
+            if (!isLocalPlayer)
+                return;
 
-		private void Update()
-		{
-			if (!isLocalPlayer)
-				return;
+            if (role == Role.Spectator && observableCameras != null)
+            {
+                var desiredCamera = observableCameras[spectatingIndex];
 
-			if (role == Role.Spectator && playerCameras != null)
-			{
-				var currentCamera = playerCameras[spectatingIndex];
+                if (!desiredCamera.enabled)
+                {
+                    observableModel = desiredCamera.GetComponentInParent<Transformation>().modelHolder.gameObject;
 
-				if (!currentCamera.enabled)
-				{
-					var model = currentCamera.GetComponentInParent<Transformation>().modelHolder.gameObject;
-					Utility.SetLayerRecursively(model, Utility.LayerMaskToLayer(currentCamera.GetComponentInParent<Setup>().firstPersonModelLayer));
+                    Utility.SetLayerRecursively(observableModel, Utility.LayerMaskToLayer(firstPersonModelLayer));
 
-					currentCamera.enabled = true;
-				}
+                    desiredCamera.enabled = true;
+                }
 
-				if (Input.GetButtonDown("Attack"))
-				{
-					playerCameras[spectatingIndex].enabled = false;
-					spectatingIndex = ++spectatingIndex % playerCameras.Count;
-				}
-			}
+                if (Input.GetButtonDown("Attack"))
+                {
+                    observableCameras[spectatingIndex].enabled = false;
 
-			if (Input.GetButtonDown("Cancel"))
-			{
-				Paused = !Paused;
+                    Utility.SetLayerRecursively(observableModel, 0);
 
-				userInterface.TogglePause();
-				controller.SetStop(Paused);
-			}
-		}
+                    spectatingIndex = ++spectatingIndex % observableCameras.Length;
+                }
+            }
 
-		[ClientRpc]
-		public void RpcStartGame()
-		{
-			controller.SetFreeze(false, false);
+            if (Input.GetButtonDown("Cancel"))
+            {
+                Paused = !Paused;
 
-			if (isLocalPlayer)
-			{
-				switch (role)
-				{
-					case Role.Seeker:
-						catching.enabled = true;
+                userInterface.TogglePause();
+                controller.SetStop(Paused);
+            }
+        }
 
-						break;
-					case Role.Hider:
-						transformation.enabled = true;
+        [ClientRpc]
+        public void RpcStartGame()
+        {
+            controller.SetFreeze(false, false);
 
-						break;
+            if (isLocalPlayer)
+            {
+                switch (role)
+                {
+                    case Role.Seeker:
+                        catching.enabled = true;
 
-					default: throw new UnhandledRoleException(role);
-				}
-			}
-		}
+                        break;
+                    case Role.Hider:
+                        transformation.enabled = true;
 
-		[ClientRpc]
-		public void RpcStopGame()
-		{
-			controller.SetStop(true);
+                        break;
 
-			// TODO: Change UI with game ending
-		}
+                    default: throw new UnhandledRoleException(role);
+                }
+            }
+        }
 
-		public void TakeDamage(float amount, uint source)
-		{
-			if (role != Role.Hider)
-				return;
+        [ClientRpc]
+        public void RpcStopGame()
+        {
+            controller.SetStop(true);
 
-			currentHealth -= amount;
+            // TODO: Change UI with game ending
+        }
 
-			Debug.Log(currentHealth);
+        public void TakeDamage(float amount, uint source)
+        {
+            if (role != Role.Hider)
+                return;
 
-			TargetOnDamageTaken(connectionToClient);
+            currentHealth -= amount;
 
-			if (currentHealth <= 0f)
-			{
-				Die(source);
-				Debug.Log("hui");
-			}
-		}
+            TargetOnDamageTaken(connectionToClient);
 
-		[TargetRpc]
-		private void TargetOnDamageTaken(NetworkConnection connection)
-		{
-			// TODO: Maybe some effects...
-		}
+            if (currentHealth <= 0f)
+                Die(source);
+        }
 
-		//comment code below
+        [TargetRpc]
+        private void TargetOnDamageTaken(NetworkConnection connection)
+        {
+            // TODO: Maybe some effects...
+        }
 
-		private void Die(uint source)
-		{
-			role = Role.Spectator;
+        private void Die(uint source)
+        {
+            role = Role.Spectator;
 
-			RpcOnDeath();
+            RpcOnDeath();
 
-			TargetBecomeSpectator(connectionToClient);
+            TargetBecomeSpectator(connectionToClient);
 
-			// TODO: Show source in kill feed
+            // TODO: Show source in kill feed
+        }
 
-			Debug.Log("becoming a spectator");
-		}
+        [ClientRpc]
+        private void RpcOnDeath()
+        {
+            transformation.modelHolder.gameObject.SetActive(false);
 
-		[ClientRpc]
-		private void RpcOnDeath()
-		{
-			transformation.modelHolder.gameObject.SetActive(false);
+            Destroy(Instantiate(deathEffect, transform.position, transform.rotation), deathEffectDuration);
+            
+            if (isLocalPlayer)
+                Utility.ToggleComponents(ref disableOnDeath, false);
+        }
 
-			if (isLocalPlayer)
-				Utility.ToggleComponents(ref disableOnDeath, false);
-
-			// TODO: Some local player actions
-		}
-
-		[TargetRpc]
-		private void TargetBecomeSpectator(NetworkConnection connection)
-		{
-			var cameras = ServerManager.GetAllCameras();
-
-			Debug.Log(cameras);
-
-			// TODO: Spectate for alive players
-			playerCameras = cameras;
-
-			Debug.Log("became a spectator");
-		}
-	}
+        [TargetRpc]
+        private void TargetBecomeSpectator(NetworkConnection connection)
+        {
+            observableCameras = ServerManager.GetAllCameras().ToArray();
+        }
+    }
 }

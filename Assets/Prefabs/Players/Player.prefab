@@ -167,7 +167,13 @@ MonoBehaviour:
   propMask:
     serializedVersion: 2
     m_Bits: 1024
+  firstPersonModelLayer:
+    serializedVersion: 2
+    m_Bits: 256
   role: 0
+  deathEffect: {fileID: 6996000233086394250, guid: cc03fefd796feb346be59e3b810e9061,
+    type: 3}
+  deathEffectDuration: 3
 --- !u!114 &2129284956287590308
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -190,9 +196,6 @@ MonoBehaviour:
   - {fileID: 959224129974555084}
   - {fileID: 600152953399661504}
   seekerModel: {fileID: 1119986346287998157}
-  firstPersonModelLayer:
-    serializedVersion: 2
-    m_Bits: 256
 --- !u!114 &3993366079011660372
 MonoBehaviour:
   m_ObjectHideFlags: 0

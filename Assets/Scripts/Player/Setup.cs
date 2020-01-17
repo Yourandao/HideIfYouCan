@@ -22,15 +22,13 @@ namespace Scripts.PlayerScripts
 
         [SerializeField] private GameObject seekerModel;
 
-        public LayerMask firstPersonModelLayer;
-
         public override void OnStartLocalPlayer()
         {
             base.OnStartLocalPlayer();
 
             Utility.ToggleComponents(ref componentsToEnable, true);
 
-            Utility.SetLayerRecursively(seekerModel, Utility.LayerMaskToLayer(firstPersonModelLayer));
+            Utility.SetLayerRecursively(seekerModel, Utility.LayerMaskToLayer(player.firstPersonModelLayer));
 
             UIInstance      = Instantiate(UIPrefab);
             UIInstance.name = UIPrefab.name;
@@ -44,12 +42,12 @@ namespace Scripts.PlayerScripts
 
         public override void OnStartClient()
         {
-	        base.OnStartClient();
+            base.OnStartClient();
 
             name = netId.ToString();
 
             if (player.role == Role.Seeker)
-				ServerManager.RegisterCamera(player.controller.firstPersonCamera.GetComponent<Camera>());
+                ServerManager.RegisterCamera(player.controller.firstPersonCamera.GetComponent<Camera>());
         }
 
         private void OnDestroy()
@@ -58,7 +56,7 @@ namespace Scripts.PlayerScripts
                 ServerManager.UnregisterPlayer(netId);
 
             if (player.role == Role.Seeker)
-				ServerManager.UnregisterCamera(player.controller.firstPersonCamera.GetComponent<Camera>());
+                ServerManager.UnregisterCamera(player.controller.firstPersonCamera.GetComponent<Camera>());
 
             if (isLocalPlayer)
             {
