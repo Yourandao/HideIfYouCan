@@ -1,6 +1,4 @@
-﻿using System;
-
-using Discord;
+﻿using Discord;
 
 using UnityEngine;
 
@@ -19,7 +17,7 @@ namespace Scripts.UI
 
         private void Start()
         {
-            discord = new Discord.Discord(667670050039267329, (ulong) Discord.CreateFlags.Default);
+            discord = new Discord.Discord(667670050039267329, (ulong) CreateFlags.Default);
 
             activityManager = discord.GetActivityManager();
 
