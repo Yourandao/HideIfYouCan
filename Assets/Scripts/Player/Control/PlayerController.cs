@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+
+using UnityEngine;
 
 namespace Scripts.PlayerScripts.Control
 {
@@ -171,7 +173,7 @@ namespace Scripts.PlayerScripts.Control
                 mouseLook.freezeModelRotation = state;
 
             if (state)
-                input = Vector3.zero;
+                StartCoroutine(ResetInput());
         }
 
         public void SetStop(bool state)
@@ -181,7 +183,7 @@ namespace Scripts.PlayerScripts.Control
             Cursor.lockState = state ? CursorLockMode.None : CursorLockMode.Locked;
 
             if (state)
-                input = Vector3.zero;
+                StartCoroutine(ResetInput());
         }
 
         public void SetSize(Vector3 size)
@@ -190,6 +192,18 @@ namespace Scripts.PlayerScripts.Control
             controller.center = new Vector3(0f, controller.height / 2, 0f);
 
             controller.radius = size.x <= size.z ? size.x : size.z;
+        }
+
+        private IEnumerator ResetInput()
+        {
+            input = Vector3.zero;
+
+            while (!controller.isGrounded)
+            {
+                velocity += Physics.gravity * Time.deltaTime;
+
+                yield return new WaitForEndOfFrame();
+            }
         }
 
         private void OnEnable() => controller.enabled = true;
