@@ -15,7 +15,7 @@ namespace Scripts.Management.Network
         public new static ServerManager singleton;
 
         [Attributes.Scene]
-        public string[] gameplayScenes;
+        [SerializeField] private string[] gameplayScenes;
 
         [SerializeField]  private GameObject gameManagerPrefab;
         [HideInInspector] public  GameObject gameManagerInstance;
@@ -88,20 +88,25 @@ namespace Scripts.Management.Network
             gameManager.StartGame();
         }
 
-        public override bool OnRoomServerSceneLoadedForPlayer(GameObject roomPlayer, GameObject gamePlayer)
+        public override GameObject OnRoomServerCreateGamePlayer(NetworkConnection conn, GameObject roomPlayer)
         {
             var role = roomPlayer.GetComponent<RoomPlayer>().Role;
-
-            gamePlayer.GetComponent<Player>().role = role;
 
             if (role != Role.Hider && role != Role.Seeker)
                 throw new UnhandledRoleException(role);
 
             var spawn = GetSpawn(role);
 
-            gamePlayer.transform.position      = spawn.position;
-            gamePlayer.transform.localRotation = spawn.localRotation;
+            var gamePlayer = Instantiate(playerPrefab, spawn.position, spawn.rotation);
+            gamePlayer.name = conn.connectionId.ToString();
 
+            gamePlayer.GetComponent<Player>().role = role;
+
+            return gamePlayer;
+        }
+
+        public override bool OnRoomServerSceneLoadedForPlayer(GameObject roomPlayer, GameObject gamePlayer)
+        {
             loadedPlayers++;
 
             if (loadedPlayers == roomSlots.Count)

@@ -13,9 +13,9 @@ TagManager:
   - UI
   - 
   - 
-  - FirstPersonModel
-  - InteractableProp
-  - PlayerProp
+  - FPModel
+  - Prop
+  - Hider
   - 
   - 
   - 

@@ -24,22 +24,19 @@ namespace Scripts.PlayerScripts.PlayerBehaviour
         [SerializeField] private LayerMask interactableObjects;
 
         [Header("Prop Components")]
-        [SerializeField] private GameObject seekerModel;
-
         public Transform modelHolder;
 
-        private Prop prop;
+        [HideInInspector] public GameObject model;
 
-        private GameObject modelInstance;
-
+        private GameObject propInstance;
+        private Prop       prop;
 
         private float holdingTime;
+        private bool  freezed;
 
-        private bool freezed;
-
-        public void Setup()
+        public void Setup(Player player)
         {
-            player = GetComponent<Player>();
+            this.player = player;
 
             controller = player.controller;
         }
@@ -89,18 +86,18 @@ namespace Scripts.PlayerScripts.PlayerBehaviour
         {
             prop = propObject.GetComponent<PropHolder>().prop;
 
-            seekerModel.SetActive(false);
+            if (isServer)
+                NetworkServer.Destroy(model);
+            
+            Destroy(propInstance);
+            propInstance = Instantiate(prop.prefab, modelHolder);
 
-            Destroy(modelInstance);
-
-            modelInstance = Instantiate(prop.prefab, modelHolder);
-
-            Utility.SetLayerRecursively(modelInstance, Utility.LayerMaskToLayer(player.propMask));
+            Utility.SetLayerRecursively(propInstance, Utility.LayerMaskToLayer(player.hiderMask));
 
             if (!isLocalPlayer)
                 return;
 
-            controller.SwitchToTPP(modelInstance.transform);
+            controller.SwitchToTPP(propInstance.transform);
             controller.speedMultiplier      = prop.speedMultiplier;
             controller.jumpHeightMultiplier = prop.jumpHeightMultiplier;
 
