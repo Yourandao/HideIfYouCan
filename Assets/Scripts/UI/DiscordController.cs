@@ -17,7 +17,7 @@ namespace Scripts.UI
 
         private void Start()
         {
-            discord = new Discord.Discord(667670050039267329, (ulong) CreateFlags.Default);
+            discord = new Discord.Discord(667670050039267329, (ulong) CreateFlags.NoRequireDiscord);
 
             activityManager = discord.GetActivityManager();
 
