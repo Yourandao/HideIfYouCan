@@ -88,11 +88,14 @@ namespace Scripts.PlayerScripts.PlayerBehaviour
 
             if (isServer)
                 NetworkServer.Destroy(model);
-            
+
             Destroy(propInstance);
             propInstance = Instantiate(prop.prefab, modelHolder);
 
-            Utility.SetLayerRecursively(propInstance, Utility.LayerMaskToLayer(player.hiderMask));
+            int layer = Utility.LayerMaskToLayer(player.hiderMask);
+
+            if (propInstance.layer != layer)
+                Utility.SetLayerRecursively(propInstance, layer);
 
             if (!isLocalPlayer)
                 return;
