@@ -14,16 +14,23 @@ namespace Scripts.PlayerScripts.Control
         [SerializeField] private float maximumXFirstPerson = 90f;
 
         [SerializeField] private float minimumXFirstPerson = -90f;
-
+        
         [Header("TPP")]
         [SerializeField] private float maximumXThirdPerson = 60f;
 
         [SerializeField] private float minimumXThirdPerson = -15f;
         // TODO: Count it automatically
 
-        private Transform player;
-        private Transform firstPersonCamera;
-        private Transform thirdPersonCamera;
+        [SerializeField] private float minFov = 10f;
+        [SerializeField] private float maxFov = 20f;
+
+        [SerializeField] private float mouseWheelSensivity = .01f;
+
+        private Transform playerTransform;
+        private Transform firstPersonCameraTransform;
+        private Transform thirdPersonCameraTransform;
+
+        private Camera thirdPersonCamera;
 
         private Transform target;
 
@@ -35,48 +42,60 @@ namespace Scripts.PlayerScripts.Control
         private float xRotation;
         private float yRotation;
 
+        private float fov;
+
         [HideInInspector] public bool freezeModelRotation;
 
-        public void Setup(Transform player, Transform firstPersonCamera)
+        public void Setup(Transform playerTransform, Transform firstPersonCameraTransform)
         {
-            this.player            = player;
-            this.firstPersonCamera = firstPersonCamera;
+            this.playerTransform            = playerTransform;
+            this.firstPersonCameraTransform = firstPersonCameraTransform;
 
             firstPersonPerspective = true;
+
+            xRotation = firstPersonCameraTransform.localRotation.eulerAngles.x;
+            yRotation = playerTransform.rotation.eulerAngles.y;
         }
-        
-        public void SwitchToTPP(Transform thirdPersonCamera, Transform target)
+
+        public void SwitchToTPP(Transform thirdPersonCameraTransform, Transform target)
         {
-            this.thirdPersonCamera = thirdPersonCamera;
-            this.target            = target;
+            this.thirdPersonCameraTransform = thirdPersonCameraTransform;
+            this.target                     = target;
+
+            thirdPersonCamera = this.thirdPersonCameraTransform.GetComponent<Camera>();
 
             firstPersonPerspective = false;
         }
 
         public void InputRotation()
         {
-            mouseX = Input.GetAxisRaw("Mouse X") * xSensitivity;
-            mouseY = Input.GetAxisRaw("Mouse Y") * ySensitivity;
+            mouseX = Input.GetAxis("Mouse X") * xSensitivity;
+            mouseY = Input.GetAxis("Mouse Y") * ySensitivity;
+
+            fov += Input.GetAxis("MouseWheel") * mouseWheelSensivity;
         }
 
         public void Rotate()
         {
             xRotation -= mouseY;
+            xRotation =  Mathf.Clamp(xRotation, minimumXFirstPerson, maximumXFirstPerson);
+
             yRotation += mouseX;
 
-            firstPersonCamera.localRotation =
-                Quaternion.Euler(Mathf.Clamp(xRotation, minimumXFirstPerson, maximumXFirstPerson), 0f, 0f);
+            firstPersonCameraTransform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
 
             if (!freezeModelRotation)
-                player.rotation = Quaternion.Euler(0f, yRotation, 0f);
+                playerTransform.rotation = Quaternion.Euler(0f, yRotation, 0f);
 
             if (firstPersonPerspective)
                 return;
 
-            thirdPersonCamera.LookAt(target);
+            fov = Mathf.Clamp(fov, minFov, maxFov);
 
-            target.rotation =
-                Quaternion.Euler(Mathf.Clamp(xRotation, minimumXThirdPerson, maximumXThirdPerson), yRotation, 0f);
+            thirdPersonCameraTransform.LookAt(target);
+            thirdPersonCamera.fieldOfView = fov;
+
+            target.rotation = Quaternion.Euler(xRotation, yRotation, 0f);
         }
     }
 }

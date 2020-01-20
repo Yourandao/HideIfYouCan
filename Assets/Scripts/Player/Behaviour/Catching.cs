@@ -25,15 +25,13 @@ namespace Scripts.PlayerScripts.PlayerBehaviour
 
         private float fireRateZero;
 
-        [SyncVar] private int ammoLeft;
-
+        [SyncVar] private int  ammoLeft;
         [SyncVar] private bool isReloading;
 
-        public void Setup()
+        public void Setup(Player player)
         {
-            player = GetComponent<Player>();
-
-            controller = player.controller;
+            this.player = player;
+            controller  = player.controller;
 
             ammoLeft = magazineCapacity;
         }
@@ -84,7 +82,7 @@ namespace Scripts.PlayerScripts.PlayerBehaviour
             var from      = controller.firstPersonCamera.position;
             var direction = controller.firstPersonCamera.forward;
 
-            if (Physics.Raycast(from, direction, out var hit, shotDistance, player.propMask))
+            if (Physics.Raycast(from, direction, out var hit, shotDistance, player.hiderMask))
             {
                 uint id = hit.collider.GetComponentInParent<NetworkIdentity>().netId;
 

@@ -435,7 +435,7 @@ GameObject:
   - component: {fileID: 7058570166395294063}
   - component: {fileID: 7058570166395294062}
   - component: {fileID: 7058570166395294058}
-  - component: {fileID: 7890503777269582118}
+  - component: {fileID: -8220031169514388599}
   - component: {fileID: 7058570166395294059}
   m_Layer: 5
   m_Name: UI
@@ -552,7 +552,7 @@ MonoBehaviour:
   spectators: {fileID: 7058570167541745729}
   player: {fileID: 0}
   skipUpdates: 100
---- !u!114 &7890503777269582118
+--- !u!114 &-8220031169514388599
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

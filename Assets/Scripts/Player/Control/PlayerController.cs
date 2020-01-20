@@ -1,6 +1,4 @@
-﻿using Mirror;
-
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Scripts.PlayerScripts.Control
 {
@@ -11,10 +9,9 @@ namespace Scripts.PlayerScripts.Control
 
         [SerializeField] private CharacterController controller;
 
-        [SerializeField] private Animator        animator;
-        [SerializeField] private NetworkAnimator networkAnimator;
+        private Animator animator;
 
-        private static readonly int _moving     = Animator.StringToHash("Moving");
+        private static readonly int _isMoving   = Animator.StringToHash("IsMoving");
         private static readonly int _horizontal = Animator.StringToHash("Horizontal");
         private static readonly int _vertical   = Animator.StringToHash("Vertical");
         private static readonly int _isRunning  = Animator.StringToHash("IsRunning");
@@ -53,13 +50,16 @@ namespace Scripts.PlayerScripts.Control
         private Vector3 velocity;
         private Vector3 localVelocity;
 
-        public void Setup()
+        public void Setup(Animator animator)
         {
             player = GetComponent<Player>();
 
+            this.animator = animator;
+            ResetAnimator();
+
             mouseLook.Setup(transform, firstPersonCamera);
 
-            ResetAnimator();
+            Cursor.lockState = CursorLockMode.Locked;
 
             freezed = true;
 
@@ -73,7 +73,7 @@ namespace Scripts.PlayerScripts.Control
             animator.SetFloat(_horizontal, 0f);
             animator.SetFloat(_vertical, 0f);
 
-            animator.SetBool(_moving, false);
+            animator.SetBool(_isMoving, false);
             animator.SetBool(_isRunning, false);
         }
 
@@ -87,22 +87,11 @@ namespace Scripts.PlayerScripts.Control
             if (freezed)
                 return;
 
-            if (Input.GetButtonDown("Run"))
-            {
-                speed = runSpeed;
+            bool runState = Input.GetButton("Run");
 
-                animator.SetBool(_isRunning, true);
-            }
-            else if (Input.GetButtonUp("Run"))
-            {
-                speed = jogSpeed;
+            speed = runState ? runSpeed : jogSpeed;
 
-                animator.SetBool(_isRunning, false);
-            }
-
-            input.Set(Input.GetAxisRaw("Horizontal"), 0f, Input.GetAxisRaw("Vertical"));
-
-            animator.SetBool(_moving, input != Vector3.zero);
+            input.Set(Input.GetAxis("Horizontal"), 0f, Input.GetAxis("Vertical"));
 
             if (controller.isGrounded)
             {
@@ -111,6 +100,12 @@ namespace Scripts.PlayerScripts.Control
             }
             else
                 velocity += Physics.gravity * Time.deltaTime;
+
+            if (animator != null)
+            {
+                animator.SetBool(_isRunning, runState);
+                animator.SetBool(_isMoving, input != Vector3.zero);
+            }
         }
 
         private void FixedUpdate()
@@ -130,8 +125,11 @@ namespace Scripts.PlayerScripts.Control
 
             controller.Move(velocity * Time.fixedDeltaTime);
 
-            animator.SetFloat(_horizontal, localVelocity.x);
-            animator.SetFloat(_vertical, localVelocity.z);
+            if (animator != null)
+            {
+                animator.SetFloat(_horizontal, localVelocity.x);
+                animator.SetFloat(_vertical, localVelocity.z);
+            }
         }
 
         private void LateUpdate()
@@ -146,15 +144,15 @@ namespace Scripts.PlayerScripts.Control
         {
             firstPersonCamera.gameObject.SetActive(false);
 
-            ResetAnimator();
-            networkAnimator.enabled = false;
-            animator.enabled        = false;
-
             jumpEnabled = true;
+
+            Destroy(thirdPersonCameraInstance);
+            Destroy(cameraTargetInstance);
 
             cameraTargetInstance = new GameObject("CameraTarget");
             cameraTargetInstance.transform.SetParent(model);
             cameraTargetInstance.transform.SetPositionAndRotation(model.position, model.rotation);
+            cameraTargetInstance.AddComponent<AudioListener>();
 
             thirdPersonCameraInstance =
                 Instantiate(thirdPersonCameraPrefab, cameraTargetInstance.transform);
@@ -198,7 +196,7 @@ namespace Scripts.PlayerScripts.Control
 
         private void OnDisable()
         {
-	        controller.enabled = false;
+            controller.enabled = false;
 
             Destroy(thirdPersonCameraInstance);
             Destroy(cameraTargetInstance);
