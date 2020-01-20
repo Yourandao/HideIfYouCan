@@ -4,7 +4,6 @@ using Scripts.Management.Network;
 using Scripts.UI;
 
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace Scripts.PlayerScripts
 {
@@ -17,10 +16,14 @@ namespace Scripts.PlayerScripts
         private                  GameObject    UIInstance;
         private                  UserInterface userInterface;
 
-        [Header("Components Management")]
         [SerializeField] private Behaviour[] componentsToEnable;
 
-        [SerializeField] private GameObject seekerModel;
+        [SerializeField] private GameObject[] models;
+        private                  GameObject   modelInstance;
+        private                  Animator     animator;
+
+        // [Attributes.Scene]
+        // [SerializeField] private string mainMenuScene;
 
         public override void OnStartLocalPlayer()
         {
@@ -28,14 +31,14 @@ namespace Scripts.PlayerScripts
 
             Utility.ToggleComponents(ref componentsToEnable, true);
 
-            Utility.SetLayerRecursively(seekerModel, Utility.LayerMaskToLayer(player.firstPersonModelLayer));
+            Utility.SetLayerRecursively(modelInstance, Utility.LayerMaskToLayer(player.firstPersonModelMask));
 
             UIInstance      = Instantiate(UIPrefab);
             UIInstance.name = UIPrefab.name;
 
             userInterface = UIInstance.GetComponent<UserInterface>();
 
-            player.Setup(userInterface);
+            player.Setup(userInterface, animator);
 
             CmdRegisterPlayer(netId);
         }
@@ -46,8 +49,14 @@ namespace Scripts.PlayerScripts
 
             name = netId.ToString();
 
-            if (player.role == Role.Seeker)
-                ServerManager.RegisterCamera(player.controller.firstPersonCamera.GetComponent<Camera>());
+            var model = models[Random.Range(0, models.Length)];
+
+            modelInstance      = Instantiate(model, player.transformation.modelHolder);
+            modelInstance.name = model.name;
+
+            animator = modelInstance.GetComponent<Animator>();
+
+            player.transformation.model = modelInstance;
         }
 
         private void OnDestroy()
@@ -58,20 +67,17 @@ namespace Scripts.PlayerScripts
             if (player.role == Role.Seeker)
                 ServerManager.UnregisterCamera(player.controller.firstPersonCamera.GetComponent<Camera>());
 
+            Destroy(modelInstance);
+
             if (isLocalPlayer)
             {
                 Destroy(UIInstance);
 
-                SceneManager.LoadSceneAsync(ServerManager.singleton.RoomScene);
+                // SceneManager.LoadSceneAsync(mainMenuScene);
             }
         }
 
         [Command]
-        private void CmdRegisterPlayer(uint id)
-        {
-            ServerManager.RegisterPlayer(id, player);
-
-            gameObject.name = id.ToString();
-        }
+        private void CmdRegisterPlayer(uint id) => ServerManager.RegisterPlayer(id, player);
     }
 }

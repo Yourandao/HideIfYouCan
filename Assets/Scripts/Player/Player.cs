@@ -26,7 +26,7 @@ namespace Scripts.PlayerScripts
 
         [HideInInspector] public UserInterface userInterface;
 
-        [SerializeField] private Behaviour[] disableOnDeath;
+        [SerializeField] private UnityEngine.Behaviour[] disableOnDeath;
 
         [Header("Settings")]
         [SerializeField] private float maxHealthAmount = 100f;
@@ -38,14 +38,14 @@ namespace Scripts.PlayerScripts
 
         [SyncVar] private float currentHealth;
 
-        [Space]
-        public LayerMask propMask;
+        [Header("Layers")]
+        public LayerMask firstPersonModelMask;
 
-        public LayerMask firstPersonModelLayer;
+        public LayerMask hiderMask;
 
         [HideInInspector]
         [SyncVar] public Role role;
-        
+
         private Camera[] observableCameras;
         private int      spectatingIndex;
 
@@ -53,8 +53,9 @@ namespace Scripts.PlayerScripts
 
         [Header("FX")]
         [SerializeField] private GameObject deathEffect;
+
         [SerializeField] private float deathEffectDuration = 3f;
-        
+
         public bool Paused { get; private set; }
 
         private void Start()
@@ -62,18 +63,18 @@ namespace Scripts.PlayerScripts
             if (isServer)
                 currentHealth = maxHealthAmount;
 
-            transformation.Setup();
-            catching.Setup();
+            transformation.Setup(this);
+            catching.Setup(this);
         }
 
-        public void Setup(UserInterface userInterface)
+        public void Setup(UserInterface userInterface, Animator animator)
         {
             this.userInterface        = userInterface;
             this.userInterface.player = this;
 
             this.userInterface.UpdateRole(role);
 
-            controller.Setup();
+            controller.Setup(animator);
         }
 
         private void Update()
@@ -89,7 +90,7 @@ namespace Scripts.PlayerScripts
                 {
                     observableModel = desiredCamera.GetComponentInParent<Transformation>().modelHolder.gameObject;
 
-                    Utility.SetLayerRecursively(observableModel, Utility.LayerMaskToLayer(firstPersonModelLayer));
+                    Utility.SetLayerRecursively(observableModel, Utility.LayerMaskToLayer(firstPersonModelMask));
 
                     desiredCamera.enabled = true;
                 }
@@ -98,7 +99,7 @@ namespace Scripts.PlayerScripts
                 {
                     observableCameras[spectatingIndex].enabled = false;
 
-                    Utility.SetLayerRecursively(observableModel, 0);
+                    Utility.SetLayerRecursively(observableModel, LayerMask.NameToLayer("Default"));
 
                     spectatingIndex = ++spectatingIndex % observableCameras.Length;
                 }
@@ -180,7 +181,7 @@ namespace Scripts.PlayerScripts
             transformation.modelHolder.gameObject.SetActive(false);
 
             Destroy(Instantiate(deathEffect, transform.position, transform.rotation), deathEffectDuration);
-            
+
             if (isLocalPlayer)
                 Utility.ToggleComponents(ref disableOnDeath, false);
         }
