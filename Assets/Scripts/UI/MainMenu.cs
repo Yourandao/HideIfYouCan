@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
+using Scripts.Attributes;
+
 using UnityEngine;
 using UnityEngine.Audio;
-using UnityEngine.Serialization;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class MainMenu : MonoBehaviour
@@ -13,7 +15,6 @@ public class MainMenu : MonoBehaviour
 
 	[SerializeField] private GameObject settingsUI;
 
-	[FormerlySerializedAs("_buttonAudioSource")]
 	[Header("Audio")]
 	[SerializeField] private AudioSource menuAudioSource;
 
@@ -37,6 +38,10 @@ public class MainMenu : MonoBehaviour
 	[Space]
 	[SerializeField] private Toggle fullscreenToggle;
 	[SerializeField] private AudioClip toggleSound;
+
+	[Space]
+	[Scene]
+	[SerializeField] private string roomScene;
 
 	private bool isTuning;
 
@@ -85,7 +90,7 @@ public class MainMenu : MonoBehaviour
 
 	public void StartGame()
 	{
-
+		SceneManager.LoadScene(roomScene);
 	}
 
 	public void ToggleSettings()
