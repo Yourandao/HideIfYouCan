@@ -1,8 +1,10 @@
-﻿using UnityEngine;
+﻿using Mirror;
+
+using UnityEngine;
 
 namespace Scripts.Props
 {
-    public sealed class PropHolder : MonoBehaviour
+    public sealed class PropHolder: NetworkBehaviour
     {
         public Prop prop;
 
@@ -13,7 +15,7 @@ namespace Scripts.Props
             int layer = Utility.LayerMaskToLayer(propLayer);
 
             if (gameObject.layer != layer)
-                gameObject.layer = layer;
+                Utility.SetLayerRecursively(gameObject, layer);
         }
     }
 }
